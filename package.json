@@ -1,0 +1,43 @@
+{
+    "name": "archived-transcript",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "test": "vitest",
+        "build": "vite build",
+        "format": "prettier --write .",
+        "lint": "eslint .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "@fontsource/roboto": "^5.2.8",
+        "@mui/icons-material": "^7.3.4",
+        "@mui/material": "^7.3.4",
+        "@mui/x-charts": "^8.14.1",
+        "js-cookie": "^3.0.5",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "react-router-dom": "^7.9.4",
+        "react-virtuoso": "^4.14.1",
+        "zustand": "^5.0.8"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.38.0",
+        "@types/react": "^19.2.2",
+        "@types/react-dom": "^19.2.2",
+        "@vitejs/plugin-react-swc": "^4.1.0",
+        "esbuild": "^0.25.11",
+        "eslint": "^9.38.0",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.0.0",
+        "eslint-plugin-react-refresh": "^0.4.24",
+        "globals": "^16.4.0",
+        "prettier": "^3.6.2",
+        "vite": "^7.1.11",
+        "vitest": "^3.2.4"
+    }
+}
