@@ -1,16 +1,25 @@
 {
     "name": "Archived Transcript",
     "short_name": "Archive",
+    "description": "Search, view, and graph transcripts for a previously active stream.",
+    "start_url": "/archived-transcript/",
+    "scope": "/archived-transcript/",
     "icons": [
         {
-            "src": "/android-chrome-192x192.png",
+            "src": "/archived-transcript/android-chrome-192x192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/android-chrome-512x512.png",
+            "src": "/archived-transcript/android-chrome-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "/archived-transcript/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
     "theme_color": "#20a79a",
