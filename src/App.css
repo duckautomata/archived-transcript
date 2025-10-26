@@ -3,11 +3,3 @@
     margin: 0 auto;
     text-align: center;
 }
-
-#live {
-    color: forestgreen;
-}
-
-#offline {
-    color: red;
-}

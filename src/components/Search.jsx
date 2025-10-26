@@ -52,14 +52,14 @@ export default function Search() {
     }, [queryParams]);
 
     return (
-        <Container maxWidth="md">
+        <Container sx={{ padding: 0 }}>
             <Box sx={{ my: 4 }}>
                 <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
                     Search Transcripts
                 </Typography>
                 <Searchbar />
                 <SearchFilter />
-                <Button variant="outlined" onClick={handleSearch} disabled={isLoading} sx={{ minWidth: 300 }}>
+                <Button variant="outlined" onClick={handleSearch} disabled={isLoading} fullWidth>
                     {isLoading ? "Searching..." : "Search"}
                 </Button>
             </Box>

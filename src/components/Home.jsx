@@ -18,34 +18,40 @@ export default function Home() {
                     Archived Transcripts
                 </Typography>
             )}
-            <Grid container spacing={2}>
-                <Grid size={6}>
+            <Grid container spacing={6} sx={{ my: 4 }}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Button
+                        fullWidth
                         component="label"
                         role={undefined}
                         variant="outlined"
                         tabIndex={-1}
                         startIcon={<ManageSearch />}
                         onClick={() => navigate("/search")}
+                        sx={{ height: 100, minWidth: isMobile ? "auto" : 150 }}
                     >
                         Search
                     </Button>
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                     <Button
+                        fullWidth
                         component="label"
                         role={undefined}
                         variant="outlined"
                         tabIndex={-1}
                         startIcon={<Assessment />}
                         onClick={() => navigate("/graph")}
+                        sx={{ height: 100, minWidth: isMobile ? "auto" : 150 }}
                     >
                         Graph
                     </Button>
                 </Grid>
             </Grid>
 
-            <Typography paddingTop={10}>Looking for the transcript of an active stream instead?</Typography>
+            <Typography paddingTop={isMobile ? 3 : 10}>
+                Looking for the transcript of an active stream instead?
+            </Typography>
             <Button href="/live-transcript" variant="outlined">
                 Go to Live-Transcript
             </Button>

@@ -132,7 +132,7 @@ export default function SearchFilter() {
                     </Grid>
 
                     {/* Boolean Toggles */}
-                    <Grid size={4}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                         <FormGroup
                             sx={{
                                 flexDirection: { xs: "column", sm: "row" },

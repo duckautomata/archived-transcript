@@ -86,14 +86,14 @@ export default function Graph() {
     }, [data, isCumulative]);
 
     return (
-        <Container maxWidth="md">
+        <Container sx={{ padding: 0 }}>
             <Box sx={{ my: 4 }}>
                 <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
                     Graph Transcripts
                 </Typography>
                 <Searchbar />
                 <SearchFilter />
-                <Button variant="outlined" sx={{ minWidth: 300 }} onClick={handleGraph} disabled={isLoading}>
+                <Button variant="outlined" fullWidth onClick={handleGraph} disabled={isLoading}>
                     {isLoading ? "Graphing..." : "Graph"}
                 </Button>
 

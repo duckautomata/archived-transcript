@@ -70,6 +70,11 @@ export default function GraphSingle() {
             setError("No transcript ID found in URL.");
             return;
         }
+        if (queryParams.searchText === "") {
+            setError("Search Text must not be empty.");
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         setData([]);
@@ -116,7 +121,7 @@ export default function GraphSingle() {
     }, [data]);
 
     return (
-        <Container maxWidth="md">
+        <Container sx={{ padding: 0 }}>
             <Box sx={{ my: 4 }}>
                 <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
                     {metadata ? `Graph: ${metadata.streamTitle}` : "Graph Transcript"}
@@ -138,7 +143,7 @@ export default function GraphSingle() {
                 )}
 
                 <Searchbar />
-                <Button variant="outlined" sx={{ minWidth: 300 }} onClick={handleGraph} disabled={isLoading}>
+                <Button variant="outlined" fullWidth onClick={handleGraph} disabled={isLoading}>
                     {isLoading ? "Graphing..." : "Graph"}
                 </Button>
 
