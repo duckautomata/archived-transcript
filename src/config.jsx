@@ -1,2 +1,2 @@
-export const server = "http://192.168.10.15:8080";
+export const server = "https://archive.dokiscripts.com/";
 export const contextLimit = 20;
