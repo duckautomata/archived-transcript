@@ -96,7 +96,7 @@ export default function GraphSingle() {
                 setData([]);
             }
         } catch (err) {
-            setError(err.error || "Failed to fetch graph data.");
+            setError(err.message || "Failed to fetch graph data.");
         } finally {
             setIsLoading(false);
         }

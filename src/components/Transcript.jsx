@@ -120,7 +120,7 @@ export default function Transcript() {
                 setTranscriptLines(data.transcriptLines);
             })
             .catch((error) => {
-                setError(error.error || "Failed to fetch graph data.");
+                setError(error.message || "Failed to fetch transcript data.");
             })
             .finally(() => {
                 setIsLoading(false);

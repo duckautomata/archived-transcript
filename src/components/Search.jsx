@@ -45,7 +45,7 @@ export default function Search() {
                 setSubmittedSearchText(queryParams.searchText);
             }
         } catch (err) {
-            setError(err.error || "Failed to fetch graph data.");
+            setError(err.message || "Failed to search transcripts.");
         } finally {
             setIsLoading(false);
         }

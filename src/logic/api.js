@@ -94,7 +94,7 @@ async function apiFetch(url, options = {}) {
         try {
             // Attempt to get more info from the response body
             const errorData = await response.json();
-            errorInfo += ` - ${JSON.stringify(errorData)}`;
+            errorInfo = errorData.error || errorInfo;
         } catch {
             throw new Error(errorInfo);
         }
