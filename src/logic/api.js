@@ -82,7 +82,7 @@ import { server } from "../config";
 async function apiFetch(url, options = {}) {
     const response = await fetch(`${server}${url}`, {
         ...options,
-        method: "GET", // All methods are GET in this example
+        method: "GET",
         headers: {
             Accept: "application/json",
             ...options.headers,
@@ -90,15 +90,19 @@ async function apiFetch(url, options = {}) {
     });
 
     if (!response.ok) {
-        let errorInfo = `HTTP error ${response.status}: ${response.statusText}`;
+        const defaultErrorMessage = `HTTP error ${response.status}: ${response.statusText}`;
+        const errorStatus = response.status;
+        let errorMessage = "";
         try {
             // Attempt to get more info from the response body
             const errorData = await response.json();
-            errorInfo = errorData.error || errorInfo;
+            errorMessage = errorData.error || defaultErrorMessage;
         } catch {
-            throw new Error(errorInfo);
+            errorMessage = defaultErrorMessage;
         }
-        throw new Error(errorInfo);
+        const error = new Error(errorMessage);
+        error.status = errorStatus;
+        throw error;
     }
 
     // Handle 204 No Content

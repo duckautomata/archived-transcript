@@ -1,12 +1,13 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { Typography, Box, Container, Button, CircularProgress, Alert } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 import Searchbar from "./Searchbar";
 import { LineChart } from "@mui/x-charts";
 import { useAppStore } from "../store/store";
 import { getGraphById, getStreamMetadata } from "../logic/api";
 import { secondsToTime, timeToSeconds } from "../logic/timezone";
+import { Info } from "@mui/icons-material";
 
 /**
  * @typedef {import('../logic/api').StreamMetadata} StreamMetadata
@@ -15,6 +16,7 @@ import { secondsToTime, timeToSeconds } from "../logic/timezone";
 
 export default function GraphSingle() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [metadata, setMetadata] = useState(/** @type {StreamMetadata | null} */ (null));
     const [metaError, setMetaError] = useState(null); // Separate error for metadata fetch
     const [data, setData] = useState(/** @type {GraphDataPoint[]} */ ([]));
@@ -39,7 +41,10 @@ export default function GraphSingle() {
 
     useEffect(() => {
         if (!id) {
-            setMetaError("No transcript ID found in URL.");
+            setMetaError({
+                message: "No transcript ID found in URL.",
+                status: 404,
+            });
             return;
         }
 
@@ -53,7 +58,10 @@ export default function GraphSingle() {
                 }
             } catch (err) {
                 if (isMounted) {
-                    setMetaError(`Failed to fetch stream metadata: ${err.message}`);
+                    setMetaError({
+                        message: err.message || "Failed to fetch stream metadata.",
+                        status: err.status || null,
+                    });
                 }
             }
         }
@@ -66,21 +74,22 @@ export default function GraphSingle() {
     }, [id]);
 
     const handleGraph = useCallback(async () => {
+        setHasSearched(true);
+        setData([]);
+        setStats(null);
+
         if (!id) {
             setError("No transcript ID found in URL.");
+
             return;
         }
         if (queryParams.searchText === "") {
-            setError("Search Text must not be empty.");
+            setError("Search text cannot be empty. Please enter a search term.");
             return;
         }
 
         setIsLoading(true);
         setError(null);
-        setData([]);
-        setStats(null);
-        setHasSearched(true);
-
         try {
             const response = await getGraphById(id, queryParams);
 
@@ -122,97 +131,119 @@ export default function GraphSingle() {
 
     return (
         <Container sx={{ padding: 0 }}>
-            <Box sx={{ my: 4 }}>
-                <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
-                    {metadata ? `Graph: ${metadata.streamTitle}` : "Graph Transcript"}
-                </Typography>
-
-                {metadata && (
-                    <Box sx={{ mb: 2, typography: "body2", color: "text.secondary", pl: 0.5 }}>
-                        <Typography variant="body2">
-                            <b>Streamer:</b> {metadata.streamer} {" - "}
-                            <b>Date:</b> {metadata.date} {" - "}
-                            <b>Type:</b> {metadata.streamType}
-                        </Typography>
-                    </Box>
-                )}
-                {metaError && (
-                    <Alert severity="error" sx={{ my: 2 }}>
-                        {metaError}
-                    </Alert>
-                )}
-
-                <Searchbar />
-                <Button variant="outlined" fullWidth onClick={handleGraph} disabled={isLoading}>
-                    {isLoading ? "Graphing..." : "Graph"}
-                </Button>
-
-                {/* --- Results Display Area --- */}
-                <Box sx={{ mt: 4 }}>
-                    {isLoading && (
-                        <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
-                            <CircularProgress />
-                        </Box>
-                    )}
-
-                    {error && (
-                        <Alert severity="error" sx={{ my: 2 }}>
-                            {error}
-                        </Alert>
-                    )}
-
-                    {hasSearched && !isLoading && !error && data.length === 0 && (
-                        <Alert severity="info" sx={{ my: 2 }}>
-                            No data found for the selected criteria.
-                        </Alert>
-                    )}
-
-                    {data.length > 0 && !isLoading && (
-                        <Box>
-                            {stats && (
-                                <Box sx={{ mb: 2 }}>
-                                    <Typography variant="h6" component="h6" gutterBottom>
-                                        Graph Statistics
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        <b>Total Hits:</b> {stats.total.toLocaleString()}
-                                    </Typography>
-                                </Box>
-                            )}
-
-                            <Box sx={{ height: 400, width: "100%" }}>
-                                <LineChart
-                                    dataset={processedData}
-                                    series={[
-                                        {
-                                            dataKey: "y",
-                                            label: "Cumulative Count",
-                                            showMark: false,
-                                            curve: "linear",
-                                        },
-                                    ]}
-                                    xAxis={[
-                                        {
-                                            scaleType: "linear",
-                                            dataKey: "x",
-                                            label: "Time",
-                                            valueFormatter: secondsToTime,
-                                        },
-                                    ]}
-                                    yAxis={[
-                                        {
-                                            label: "Cumulative Count",
-                                            min: 0,
-                                        },
-                                    ]}
-                                    tooltip={{ trigger: "axis" }}
-                                    grid={{ vertical: false, horizontal: true }}
-                                />
-                            </Box>
-                        </Box>
-                    )}
+            {metaError?.status === 404 ? (
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                        height: "50vh",
+                    }}
+                >
+                    <Info color="primary" sx={{ fontSize: 60, mb: 2 }} />
+                    <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
+                        404 Not Found
+                    </Typography>
+                    <Typography color="text.secondary">{metaError.message}</Typography>
+                    <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
+                        Go Back Home
+                    </Button>
                 </Box>
-            </Box>
+            ) : (
+                <Box sx={{ my: 4 }}>
+                    <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
+                        {metadata ? `Graph: ${metadata.streamTitle}` : "Graph Transcript"}
+                    </Typography>
+
+                    {metadata && (
+                        <Box sx={{ mb: 2, typography: "body2", color: "text.secondary", pl: 0.5 }}>
+                            <Typography variant="body2">
+                                <b>Streamer:</b> {metadata.streamer} {" - "}
+                                <b>Date:</b> {metadata.date} {" - "}
+                                <b>Type:</b> {metadata.streamType}
+                            </Typography>
+                        </Box>
+                    )}
+                    {metaError && (
+                        <Alert severity="error" sx={{ my: 2 }}>
+                            {metaError}
+                        </Alert>
+                    )}
+
+                    <Searchbar />
+                    <Button variant="outlined" fullWidth onClick={handleGraph} disabled={isLoading}>
+                        {isLoading ? "Graphing..." : "Graph"}
+                    </Button>
+
+                    {/* --- Results Display Area --- */}
+                    <Box sx={{ mt: 4 }}>
+                        {isLoading && (
+                            <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
+                                <CircularProgress />
+                            </Box>
+                        )}
+
+                        {error && (
+                            <Alert severity="error" sx={{ my: 2 }}>
+                                {error}
+                            </Alert>
+                        )}
+
+                        {hasSearched && !isLoading && !error && data.length === 0 && (
+                            <Alert severity="info" sx={{ my: 2 }}>
+                                No data found for the selected criteria.
+                            </Alert>
+                        )}
+
+                        {data.length > 0 && !isLoading && (
+                            <Box>
+                                {stats && (
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography variant="h6" component="h6" gutterBottom>
+                                            Graph Statistics
+                                        </Typography>
+                                        <Typography variant="body1">
+                                            <b>Total Hits:</b> {stats.total.toLocaleString()}
+                                        </Typography>
+                                    </Box>
+                                )}
+
+                                <Box sx={{ height: 400, width: "100%" }}>
+                                    <LineChart
+                                        dataset={processedData}
+                                        series={[
+                                            {
+                                                dataKey: "y",
+                                                label: "Cumulative Count",
+                                                showMark: false,
+                                                curve: "linear",
+                                            },
+                                        ]}
+                                        xAxis={[
+                                            {
+                                                scaleType: "linear",
+                                                dataKey: "x",
+                                                label: "Time",
+                                                valueFormatter: secondsToTime,
+                                            },
+                                        ]}
+                                        yAxis={[
+                                            {
+                                                label: "Cumulative Count",
+                                                min: 0,
+                                            },
+                                        ]}
+                                        tooltip={{ trigger: "axis" }}
+                                        grid={{ vertical: false, horizontal: true }}
+                                    />
+                                </Box>
+                            </Box>
+                        )}
+                    </Box>
+                </Box>
+            )}
         </Container>
     );
 }

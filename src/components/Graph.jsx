@@ -34,12 +34,17 @@ export default function Graph() {
     );
 
     const handleGraph = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
+        setHasSearched(true);
         setData([]);
         setStats(null);
-        setHasSearched(true);
 
+        if (!queryParams.searchText || queryParams.searchText.trim() === "") {
+            setError("Search text cannot be empty. Please enter a search term.");
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
         try {
             const response = await getGraph(queryParams);
 

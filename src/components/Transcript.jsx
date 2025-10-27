@@ -1,4 +1,4 @@
-import { Link } from "@mui/icons-material";
+import { ErrorOutline, Info, Link } from "@mui/icons-material";
 import {
     Typography,
     IconButton,
@@ -10,10 +10,10 @@ import {
     DialogContentText,
     DialogTitle,
     Button,
-    Alert,
+    Box,
 } from "@mui/material";
 import { memo, useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getTranscriptById } from "../logic/api";
 import styled from "@emotion/styled";
 import { useAppStore } from "../store/store";
@@ -61,6 +61,7 @@ Line.displayName = "Line";
 
 export default function Transcript() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [date, setDate] = useState("");
     const [streamTitle, setStreamTitle] = useState("");
     const [streamType, setStreamType] = useState("");
@@ -111,20 +112,40 @@ export default function Transcript() {
     };
 
     useEffect(() => {
-        getTranscriptById(id)
-            .then((data) => {
-                setDate(data.date);
-                setStreamTitle(data.streamTitle);
-                setStreamType(data.streamType);
-                setStreamer(data.streamer);
-                setTranscriptLines(data.transcriptLines);
-            })
-            .catch((error) => {
-                setError(error.message || "Failed to fetch transcript data.");
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
+        let isMounted = true;
+
+        async function fetchTranscript() {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const data = await getTranscriptById(id);
+                if (isMounted) {
+                    setDate(data.date);
+                    setStreamTitle(data.streamTitle);
+                    setStreamType(data.streamType);
+                    setStreamer(data.streamer);
+                    setTranscriptLines(data.transcriptLines);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError({
+                        message: err.message || "Failed to fetch transcript data.",
+                        status: err.status || null,
+                    });
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        fetchTranscript();
+
+        return () => {
+            isMounted = false;
+        };
     }, [id]);
 
     return (
@@ -134,9 +155,38 @@ export default function Transcript() {
             ) : (
                 <>
                     {error ? (
-                        <Alert severity="error" sx={{ my: 2 }}>
-                            {error}
-                        </Alert>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                textAlign: "center",
+                                height: "50vh",
+                            }}
+                        >
+                            {error.status === 404 ? (
+                                <>
+                                    <Info color="primary" sx={{ fontSize: 60, mb: 2 }} />
+                                    <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
+                                        404 Not Found
+                                    </Typography>
+                                    <Typography color="text.secondary">{error.message}</Typography>
+                                </>
+                            ) : (
+                                <>
+                                    <ErrorOutline color="error" sx={{ fontSize: 60, mb: 2 }} />
+                                    <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
+                                        Error fetching transcripts
+                                    </Typography>
+                                    <Typography color="text.secondary">{error.message}</Typography>
+                                </>
+                            )}
+
+                            <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
+                                Go Back Home
+                            </Button>
+                        </Box>
                     ) : (
                         <>
                             <Typography
