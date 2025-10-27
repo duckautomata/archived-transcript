@@ -12,13 +12,14 @@ import {
     Button,
     Box,
 } from "@mui/material";
-import { memo, useEffect, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { memo, useEffect, useState, useCallback, useRef } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getTranscriptById } from "../logic/api";
 import styled from "@emotion/styled";
 import { useAppStore } from "../store/store";
 import TranscriptSkeleton from "./TranscriptSkeleton";
 import { toLocalDate } from "../logic/timezone";
+import { Virtuoso } from "react-virtuoso";
 
 const TimestampTheme = styled("span")(({ theme }) => ({
     "&": {
@@ -26,7 +27,7 @@ const TimestampTheme = styled("span")(({ theme }) => ({
     },
 }));
 
-const Line = memo(({ id, start, text, handleClick }) => {
+const Line = memo(function Line({ id, start, text, handleClick }) {
     const theme = useTheme();
     const density = useAppStore((state) => state.density);
 
@@ -35,33 +36,43 @@ const Line = memo(({ id, start, text, handleClick }) => {
     const iconSx = density === "compact" ? { padding: 0 } : {};
 
     return (
-        <Typography
-            color="secondary"
-            aria-live="assertive"
-            padding="1px"
-            whiteSpace="pre-wrap"
-            align="left"
+        <Box
             id={id}
-            style={{
-                background: "none",
-                wordBreak: "break-word",
+            sx={{
+                padding: "1px 0",
+                "&:hover": {
+                    backgroundColor: theme.palette.action.hover,
+                },
             }}
         >
-            <Tooltip title="Open video at timestamp">
-                <IconButton size={iconSize} sx={iconSx} onClick={() => handleClick(start)}>
-                    <Link style={{ color: iconColor }} />
-                </IconButton>
-            </Tooltip>{" "}
-            [<TimestampTheme theme={theme}>{start}</TimestampTheme>] {text}
-        </Typography>
+            <Typography
+                color="secondary"
+                aria-live="assertive"
+                whiteSpace="pre-wrap"
+                align="left"
+                style={{ wordBreak: "break-word" }}
+            >
+                <Tooltip title="Open video at timestamp">
+                    <IconButton
+                        size={iconSize}
+                        sx={{ ...iconSx, verticalAlign: "middle" }}
+                        onClick={() => handleClick(start)}
+                    >
+                        <Link style={{ color: iconColor }} />
+                    </IconButton>
+                </Tooltip>{" "}
+                [<TimestampTheme theme={theme}>{start}</TimestampTheme>] {text}
+            </Typography>
+        </Box>
     );
 });
-
-Line.displayName = "Line";
 
 export default function Transcript() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+    const virtuosoRef = useRef(null);
+
     const [date, setDate] = useState("");
     const [streamTitle, setStreamTitle] = useState("");
     const [streamType, setStreamType] = useState("");
@@ -111,12 +122,14 @@ export default function Transcript() {
         handleDialogClose();
     };
 
+    // Fetch transcript at page load
     useEffect(() => {
         let isMounted = true;
 
         async function fetchTranscript() {
             setIsLoading(true);
             setError(null);
+            setTranscriptLines([]);
 
             try {
                 const data = await getTranscriptById(id);
@@ -125,7 +138,7 @@ export default function Transcript() {
                     setStreamTitle(data.streamTitle);
                     setStreamType(data.streamType);
                     setStreamer(data.streamer);
-                    setTranscriptLines(data.transcriptLines);
+                    setTranscriptLines(data.transcriptLines || []);
                 }
             } catch (err) {
                 if (isMounted) {
@@ -148,8 +161,60 @@ export default function Transcript() {
         };
     }, [id]);
 
+    // Jump to line if present in hash
+    useEffect(() => {
+        if (isLoading || transcriptLines.length === 0 || !virtuosoRef.current || !location.hash) {
+            return;
+        }
+
+        if (!location.hash.startsWith("#T")) {
+            return;
+        }
+        const encodedTime = location.hash.substring(2);
+        const targetTime = encodedTime.replace(/-/g, ":");
+
+        if (!targetTime) {
+            return;
+        }
+
+        const targetIndex = transcriptLines.findIndex((line) => line.start === targetTime);
+        const targetLineId = transcriptLines[targetIndex]?.id;
+
+        if (targetIndex === -1 || !targetLineId) {
+            return;
+        }
+
+        // Wait for all divs to be rendered, then scroll into view
+        setTimeout(() => {
+            if (virtuosoRef.current) {
+                virtuosoRef.current.scrollToIndex({
+                    index: targetIndex,
+                    align: "start",
+                });
+
+                // Wait for it to scroll into view, then add highlight
+                setTimeout(() => {
+                    const element = document.getElementById(targetLineId);
+                    if (!element) {
+                        // Rendering is taking too long. So we skip the highlight
+                        return;
+                    }
+
+                    element.classList.add("highlight");
+
+                    // remove highlight after 2 seconds
+                    setTimeout(() => {
+                        if (document.getElementById(targetLineId)) {
+                            element.classList.remove("highlight");
+                        }
+                    }, 2000);
+                }, 150);
+            }
+        }, 100);
+    }, [isLoading, transcriptLines, location.hash]);
+
     return (
-        <div className="transcript">
+        <Box sx={{ width: "100%" }}>
             {isLoading ? (
                 <TranscriptSkeleton />
             ) : (
@@ -182,13 +247,13 @@ export default function Transcript() {
                                     <Typography color="text.secondary">{error.message}</Typography>
                                 </>
                             )}
-
                             <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
                                 Go Back Home
                             </Button>
                         </Box>
                     ) : (
                         <>
+                            {/* Title and metadata */}
                             <Typography
                                 color="primary"
                                 variant="h5"
@@ -197,18 +262,25 @@ export default function Transcript() {
                             >
                                 {streamTitle}
                             </Typography>
-                            <Typography>
+                            <Typography sx={{ mb: 2 }}>
                                 {toLocalDate(date)} - {streamType} - {streamer}
                             </Typography>
-                            {transcriptLines.map((line) => (
-                                <Line
-                                    key={`streamLogsLine-${line.id}`}
-                                    id={line.id}
-                                    start={line.start}
-                                    text={line.text}
-                                    handleClick={handleClick}
-                                />
-                            ))}
+
+                            {/* Virtualized List */}
+                            <Virtuoso
+                                ref={virtuosoRef}
+                                style={{ height: "calc(100vh - 180px)" }}
+                                data={transcriptLines}
+                                itemContent={(index, line) => (
+                                    <Line
+                                        key={line.id ? `line-${line.id}` : `line-idx-${index}`}
+                                        id={line.id}
+                                        start={line.start}
+                                        text={line.text}
+                                        handleClick={handleClick}
+                                    />
+                                )}
+                            />
                         </>
                     )}
                 </>
@@ -237,6 +309,6 @@ export default function Transcript() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </div>
+        </Box>
     );
 }

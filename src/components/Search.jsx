@@ -10,6 +10,10 @@ import { useAppStore } from "../store/store";
 import { useShallow } from "zustand/shallow";
 import { Virtuoso } from "react-virtuoso";
 
+/**
+ * @typedef {import('../logic/api').TranscriptSearch} TranscriptSearch
+ */
+
 export default function Search() {
     const queryParams = useAppStore(
         useShallow((state) => {
@@ -28,7 +32,7 @@ export default function Search() {
     const [searched, setSearched] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [streamsData, setStreamsData] = useState([]);
+    const [streamsData, setStreamsData] = useState(/** @type {TranscriptSearch[]} */ ([]));
     const [submittedSearchText, setSubmittedSearchText] = useState(queryParams.searchText);
     const totalStreams = streamsData.length;
 

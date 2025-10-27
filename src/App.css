@@ -3,3 +3,8 @@
     margin: 0 auto;
     text-align: center;
 }
+
+.highlight {
+    background-color: rgb(123, 138, 145) !important;
+    transition: background-color 1s ease-out;
+}
