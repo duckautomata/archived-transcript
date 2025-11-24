@@ -1,4 +1,4 @@
-import { ErrorOutline, Info, Link } from "@mui/icons-material";
+import { Clear, ErrorOutline, Info, Link, Search } from "@mui/icons-material";
 import {
     Typography,
     IconButton,
@@ -11,6 +11,9 @@ import {
     DialogTitle,
     Button,
     Box,
+    TextField,
+    InputAdornment,
+    useMediaQuery,
 } from "@mui/material";
 import { memo, useEffect, useState, useCallback, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -72,6 +75,7 @@ export default function Transcript() {
     const navigate = useNavigate();
     const location = useLocation();
     const virtuosoRef = useRef(null);
+    const isMobile = useMediaQuery("(max-width:768px)");
 
     const [date, setDate] = useState("");
     const [streamTitle, setStreamTitle] = useState("");
@@ -82,6 +86,12 @@ export default function Transcript() {
     const [error, setError] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [navigationUrl, setNavigationUrl] = useState("");
+    const [internalUrl, setInternalUrl] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredTranscriptLines = transcriptLines.filter((line) => {
+        return line.text.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     const handleClick = useCallback(
         (timestamp) => {
@@ -97,6 +107,8 @@ export default function Transcript() {
                 url = `https://www.youtube.com/watch?v=${id}&t=${seconds}s`;
             }
 
+            const encodedTime = timestamp.replace(/:/g, "-");
+            setInternalUrl(`/transcript/${id}#T${encodedTime}`);
             setNavigationUrl(url);
             setDialogOpen(true);
         },
@@ -106,6 +118,13 @@ export default function Transcript() {
     const handleDialogClose = () => {
         setDialogOpen(false);
         setNavigationUrl("");
+        setInternalUrl("");
+    };
+
+    const handleDialogJumpTo = () => {
+        setSearchTerm("");
+        navigate(internalUrl);
+        handleDialogClose();
     };
 
     const handleDialogCopy = () => {
@@ -266,11 +285,49 @@ export default function Transcript() {
                                 {toLocalDate(date)} - {streamType} - {streamer}
                             </Typography>
 
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    width: "100%",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <TextField
+                                    label="Search Transcript"
+                                    variant="outlined"
+                                    size="small"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    slotProps={{
+                                        input: {
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Search />
+                                                </InputAdornment>
+                                            ),
+                                        },
+                                    }}
+                                    sx={{ width: isMobile ? "100%" : "50%" }}
+                                />
+                                {searchTerm && ( // Conditionally render clear button
+                                    <IconButton
+                                        onClick={() => {
+                                            setSearchTerm("");
+                                        }}
+                                        aria-label="clear search"
+                                    >
+                                        <Clear />
+                                    </IconButton>
+                                )}
+                            </Box>
+                            <hr />
+
                             {/* Virtualized List */}
                             <Virtuoso
                                 ref={virtuosoRef}
                                 style={{ height: "calc(100vh - 180px)" }}
-                                data={transcriptLines}
+                                data={filteredTranscriptLines}
                                 itemContent={(index, line) => (
                                     <Line
                                         key={line.id ? `line-${line.id}` : `line-idx-${index}`}
@@ -303,6 +360,7 @@ export default function Transcript() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleDialogClose}>Cancel</Button>
+                    <Button onClick={handleDialogJumpTo}>Jump to line</Button>
                     <Button onClick={handleDialogCopy}>Copy Instead</Button>
                     <Button onClick={handleDialogConfirm} autoFocus>
                         Continue

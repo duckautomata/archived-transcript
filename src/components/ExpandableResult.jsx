@@ -278,6 +278,15 @@ export default memo(function ExpandableResult({ stream, targetWord }) {
                     <Button variant="contained" size="small" onClick={handleGraphClick} sx={{ flexShrink: 0 }}>
                         Graph This Stream
                     </Button>
+                    <span style={{ paddingRight: 10 }} />
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleActionClick("00:00:00", "")}
+                        sx={{ flexShrink: 0 }}
+                    >
+                        Open This Stream
+                    </Button>
                     {limited && (
                         <Typography>
                             Note: results may be limited. To see all results, click on &#34;View Full Transcript&#34;
