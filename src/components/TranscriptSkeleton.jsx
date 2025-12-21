@@ -1,5 +1,8 @@
 import { Box, Skeleton, Typography, useMediaQuery } from "@mui/material";
 
+/**
+ * Loading skeleton for transcript component
+ */
 export default function TranscriptSkeleton() {
     const isMobile = useMediaQuery("(max-width:768px)");
     const numOfLine = Math.max(Math.ceil((window.innerHeight - 200) / 36), 1);

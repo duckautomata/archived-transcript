@@ -1,6 +1,7 @@
 // --- JSDoc Type Definitions (from Go structs) ---
 
 import { server } from "../config";
+import { useAppStore } from "../store/store";
 
 /**
  * @typedef {object} TranscriptLine
@@ -80,13 +81,21 @@ import { server } from "../config";
  * @returns {Promise<any>} - The parsed JSON response.
  */
 async function apiFetch(url, options = {}) {
+    const headers = {
+        Accept: "application/json",
+        ...options.headers,
+    };
+
+    // Inject membership key if available
+    const membershipKey = useAppStore.getState().membershipKey;
+    if (membershipKey) {
+        headers["X-Membership-Key"] = membershipKey;
+    }
+
     const response = await fetch(`${server}${url}`, {
         ...options,
         method: "GET",
-        headers: {
-            Accept: "application/json",
-            ...options.headers,
-        },
+        headers,
     });
 
     if (!response.ok) {
@@ -210,4 +219,28 @@ export async function getGraph(params) {
  */
 export async function getStreamMetadata(id) {
     return apiFetch(`/stream/${id}`);
+}
+
+/**
+ * Verifies the membership key.
+ * @param {string} key
+ * @returns {Promise<{channel: string, expiresAt: string}>}
+ */
+export async function verifyMembershipKey(key) {
+    const response = await fetch(`${server}/membership/verify`, {
+        method: "GET",
+        headers: {
+            Accept: "application/json",
+            "X-Membership-Key": key,
+        },
+    });
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            throw new Error("Invalid membership key");
+        }
+        throw new Error(`Verification failed: ${response.statusText}`);
+    }
+
+    return await response.json();
 }

@@ -14,6 +14,10 @@ import { Info } from "@mui/icons-material";
  * @typedef {import('../logic/api').GraphDataPoint} GraphDataPoint
  */
 
+/**
+ * A page for graphing a specific transcript.
+ * Shows an error message if the stream metadata call fails (400 or 500).
+ */
 export default function GraphSingle() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -159,6 +163,15 @@ export default function GraphSingle() {
 
                     {metadata && (
                         <Box sx={{ mb: 2, typography: "body2", color: "text.secondary", pl: 0.5 }}>
+                            {metadata.streamType === "Members" && (
+                                <Typography
+                                    variant="subtitle1"
+                                    color="error"
+                                    sx={{ mb: 2, fontWeight: "bold", border: "1px solid red", p: 1, borderRadius: 1 }}
+                                >
+                                    This is members content and should only be used for personal use, never shared.
+                                </Typography>
+                            )}
                             <Typography variant="body2">
                                 <b>Streamer:</b> {metadata.streamer} {" - "}
                                 <b>Date:</b> {metadata.date} {" - "}

@@ -1,9 +1,12 @@
-// Landing page. Will be similar to live-transcript home, but have a button to search and a button to graph. As well as a button to go back to live-transcript
 import { Assessment, ManageSearch } from "@mui/icons-material";
 import { Typography, Box, useMediaQuery, Button, Grid, TextField } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * A basic homepage that can navigate users to search or graph.
+ * Also has the option to instantly view a specific transcript or graph.
+ */
 export default function Home() {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width:599px)");

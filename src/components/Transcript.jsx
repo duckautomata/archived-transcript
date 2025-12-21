@@ -30,46 +30,67 @@ const TimestampTheme = styled("span")(({ theme }) => ({
     },
 }));
 
-const Line = memo(function Line({ id, start, text, handleClick }) {
-    const theme = useTheme();
-    const density = useAppStore((state) => state.density);
+/**
+ * Memoized line of a transcript
+ * @param {Object} props
+ * @param {string} props.id - The id of the line
+ * @param {number} props.start - The timestamp of the start of the line
+ * @param {string} props.text - The text of the line
+ * @param {function} props.handleClick - Callback function to handle when the line button is clicked
+ */
+const Line = memo(
+    /**
+     * Memoized line of a transcript
+     * @param {Object} props
+     * @param {string} props.id - The id of the line
+     * @param {number} props.start - The timestamp of the start of the line
+     * @param {string} props.text - The text of the line
+     * @param {function} props.handleClick - Callback function to handle when the line button is clicked
+     */
+    function Line({ id, start, text, handleClick }) {
+        const theme = useTheme();
+        const density = useAppStore((state) => state.density);
 
-    const iconColor = theme.palette.id.main;
-    const iconSize = density === "comfortable" ? "medium" : "small";
-    const iconSx = density === "compact" ? { padding: 0 } : {};
+        const iconColor = theme.palette.id.main;
+        const iconSize = density === "comfortable" ? "medium" : "small";
+        const iconSx = density === "compact" ? { padding: 0 } : {};
 
-    return (
-        <Box
-            id={id}
-            sx={{
-                padding: "1px 0",
-                "&:hover": {
-                    backgroundColor: theme.palette.action.hover,
-                },
-            }}
-        >
-            <Typography
-                color="secondary"
-                aria-live="assertive"
-                whiteSpace="pre-wrap"
-                align="left"
-                style={{ wordBreak: "break-word" }}
+        return (
+            <Box
+                id={id}
+                sx={{
+                    padding: "1px 0",
+                    "&:hover": {
+                        backgroundColor: theme.palette.action.hover,
+                    },
+                }}
             >
-                <Tooltip title="Open video at timestamp">
-                    <IconButton
-                        size={iconSize}
-                        sx={{ ...iconSx, verticalAlign: "middle" }}
-                        onClick={() => handleClick(start)}
-                    >
-                        <Link style={{ color: iconColor }} />
-                    </IconButton>
-                </Tooltip>{" "}
-                [<TimestampTheme theme={theme}>{start}</TimestampTheme>] {text}
-            </Typography>
-        </Box>
-    );
-});
+                <Typography
+                    color="secondary"
+                    aria-live="assertive"
+                    whiteSpace="pre-wrap"
+                    align="left"
+                    style={{ wordBreak: "break-word" }}
+                >
+                    <Tooltip title="Open video at timestamp">
+                        <IconButton
+                            size={iconSize}
+                            sx={{ ...iconSx, verticalAlign: "middle" }}
+                            onClick={() => handleClick(start)}
+                        >
+                            <Link style={{ color: iconColor }} />
+                        </IconButton>
+                    </Tooltip>{" "}
+                    [<TimestampTheme theme={theme}>{start}</TimestampTheme>] {text}
+                </Typography>
+            </Box>
+        );
+    },
+);
 
+/**
+ * A page that renders the transcript component based on the id in the url.
+ */
 export default function Transcript() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -281,6 +302,15 @@ export default function Transcript() {
                             >
                                 {streamTitle}
                             </Typography>
+                            {streamType === "Members" && (
+                                <Typography
+                                    variant="h6"
+                                    color="error"
+                                    sx={{ mb: 2, fontWeight: "bold", border: "1px solid red", p: 1, borderRadius: 1 }}
+                                >
+                                    This is members content and should only be used for personal use, never shared.
+                                </Typography>
+                            )}
                             <Typography sx={{ mb: 2 }}>
                                 {toLocalDate(date)} - {streamType} - {streamer}
                             </Typography>
@@ -326,7 +356,16 @@ export default function Transcript() {
                             {/* Virtualized List */}
                             <Virtuoso
                                 ref={virtuosoRef}
-                                style={{ height: "calc(100vh - 180px)" }}
+                                style={{
+                                    height:
+                                        streamType === "Members"
+                                            ? isMobile
+                                                ? "calc(100svh - 120px)"
+                                                : "calc(100vh - 250px)"
+                                            : isMobile
+                                              ? "calc(100svh - 120px)"
+                                              : "calc(100vh - 180px)",
+                                }}
                                 data={filteredTranscriptLines}
                                 itemContent={(index, line) => (
                                     <Line

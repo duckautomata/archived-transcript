@@ -1,5 +1,3 @@
-// streamer, type, date range, match case, match whole word, punctuiation sensitive
-
 import {
     Box,
     Checkbox,
@@ -18,6 +16,10 @@ import {
 } from "@mui/material";
 import { useAppStore } from "../store/store";
 
+/**
+ * A component for filtering transcripts based on streamer, type, date range, and match whole word.
+ * All filters are stored in the app store.
+ */
 export default function SearchFilter() {
     const streamer = useAppStore((state) => state.streamer);
     const streamType = useAppStore((state) => state.streamType);
@@ -34,7 +36,7 @@ export default function SearchFilter() {
     const setMatchWholeWord = useAppStore((state) => state.setMatchWholeWord);
 
     const uniqueStreamers = ["Dokibird", "MintFantome"];
-    const streamTypes = ["Video", "Stream", "Twitch", "TwitchVod", "External"];
+    const streamTypes = ["Video", "Stream", "Twitch", "Members", "TwitchVod", "External"];
 
     const handleTypeChange = (event) => {
         const {

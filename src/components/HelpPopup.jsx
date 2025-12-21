@@ -11,6 +11,9 @@ import {
 } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
 
+/**
+ * Helper component to display guide images with a Paper background.
+ */
 export default function HelpPopup({ open, setOpen }) {
     const handleClose = () => {
         setOpen(false);

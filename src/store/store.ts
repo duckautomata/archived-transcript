@@ -22,6 +22,8 @@ export const useAppStore = create<AppStore>()(
                 enableTagHelper: state.enableTagHelper,
                 defaultOffset: state.defaultOffset,
                 sidebarOpen: state.sidebarOpen,
+                membershipKey: state.membershipKey,
+                membershipInfo: state.membershipInfo,
             }),
         },
     ),

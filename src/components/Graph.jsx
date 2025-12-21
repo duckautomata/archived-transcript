@@ -11,6 +11,9 @@ import { getGraph } from "../logic/api";
  * @typedef {import('../logic/api').GraphDataPoint} GraphDataPoint
  */
 
+/**
+ * A page for graphing all transcripts based on a filter criteria.
+ */
 export default function Graph() {
     const [data, setData] = useState(/** @type {GraphDataPoint[]} */ ([]));
     const [isLoading, setIsLoading] = useState(false);

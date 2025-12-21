@@ -1,8 +1,10 @@
-// Stream title, text, regex
-
 import { Box, Grid, TextField } from "@mui/material";
 import { useAppStore } from "../store/store";
 
+/**
+ * A component for searching text in transcripts.
+ * Search text is stored in the app store.
+ */
 export default function Searchbar() {
     const searchText = useAppStore((state) => state.searchText);
     const setSearchText = useAppStore((state) => state.setSearchText);

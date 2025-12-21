@@ -52,3 +52,41 @@ export const secondsToTime = (totalSeconds) => {
 
     return `${pad(h)}:${pad(m)}:${pad(s)}`;
 };
+
+/**
+ * Formats an ISO expiration date string to "Month Day(ordinal), Year in X days".
+ * @param {string} isoDateStr - ISO 8601 date string.
+ * @returns {string} Formatted string.
+ */
+export const formatExpirationDate = (isoDateStr) => {
+    if (!isoDateStr) return "";
+    const date = new Date(isoDateStr);
+    if (isNaN(date.getTime())) return "";
+
+    const month = date.toLocaleString("default", { month: "long" });
+    const day = date.getDate();
+    const year = date.getFullYear();
+
+    const getOrdinal = (n) => {
+        const s = ["th", "st", "nd", "rd"];
+        const v = n % 100;
+        return s[(v - 20) % 10] || s[v] || s[0];
+    };
+
+    const dayStr = `${day}${getOrdinal(day)}`;
+
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let daysString = "";
+    if (diffDays > 0) {
+        daysString = ` in ${diffDays} day${diffDays === 1 ? "" : "s"}`;
+    } else if (diffDays === 0) {
+        daysString = " today";
+    } else {
+        daysString = ` ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? "" : "s"} ago`;
+    }
+
+    return `${month} ${dayStr}, ${year} — ${daysString}`;
+};

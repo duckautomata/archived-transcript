@@ -14,6 +14,9 @@ import { Virtuoso } from "react-virtuoso";
  * @typedef {import('../logic/api').TranscriptSearch} TranscriptSearch
  */
 
+/**
+ * A page for searching transcripts and displaying results.
+ */
 export default function Search() {
     const queryParams = useAppStore(
         useShallow((state) => {

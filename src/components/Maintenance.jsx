@@ -1,6 +1,9 @@
 import { Engineering } from "@mui/icons-material";
 import { Box, Typography } from "@mui/material";
 
+/**
+ * A page for displaying maintenance message.
+ */
 export default function Maintenance() {
     return (
         <Box
