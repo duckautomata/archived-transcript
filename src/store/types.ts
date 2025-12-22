@@ -35,19 +35,21 @@ export interface SettingsSlice {
     theme: "light" | "system" | "dark";
     density: "compact" | "standard" | "comfortable";
     timeFormat: "relative" | "local" | "UTC";
-    newAtTop: boolean;
+    transcriptHeight: "100%" | "90%" | "75%" | "50%";
     enableTagHelper: boolean;
     defaultOffset: number;
     sidebarOpen: boolean;
+    devMode: boolean;
     membershipKey: string;
     membershipInfo: { channel: string; expiresAt: string } | null;
     setTheme: (theme: SettingsSlice["theme"]) => void;
     setDensity: (density: SettingsSlice["density"]) => void;
     setTimeFormat: (format: SettingsSlice["timeFormat"]) => void;
-    setNewAtTop: (value: boolean) => void;
+    setTranscriptHeight: (height: SettingsSlice["transcriptHeight"]) => void;
     setEnableTagHelper: (value: boolean) => void;
     setDefaultOffset: (offset: number) => void;
     setSidebarOpen: (isOpen: boolean) => void;
+    setDevMode: (value: boolean) => void;
     setMembershipKey: (key: string) => void;
     setMembershipInfo: (info: SettingsSlice["membershipInfo"]) => void;
 }
