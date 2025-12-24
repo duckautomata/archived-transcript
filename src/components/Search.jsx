@@ -64,7 +64,7 @@ export default function Search() {
                 <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
                     Search Transcripts
                 </Typography>
-                <Searchbar />
+                <Searchbar onSearch={handleSearch} />
                 <SearchFilter />
                 <Button variant="outlined" onClick={handleSearch} disabled={isLoading} fullWidth>
                     {isLoading ? "Searching..." : "Search"}

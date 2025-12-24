@@ -99,7 +99,7 @@ export default function Graph() {
                 <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
                     Graph Transcripts
                 </Typography>
-                <Searchbar />
+                <Searchbar onSearch={handleGraph} />
                 <SearchFilter />
                 <Button variant="outlined" fullWidth onClick={handleGraph} disabled={isLoading}>
                     {isLoading ? "Graphing..." : "Graph"}

@@ -14,8 +14,9 @@ import {
     TextField,
     InputAdornment,
     useMediaQuery,
+    Paper,
 } from "@mui/material";
-import { memo, useEffect, useState, useCallback, useRef } from "react";
+import { memo, useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getTranscriptById } from "../logic/api";
 import styled from "@emotion/styled";
@@ -28,6 +29,14 @@ const TimestampTheme = styled("span")(({ theme }) => ({
     "&": {
         color: theme.palette.timestamp.main,
     },
+}));
+
+const HighlightedText = styled("span")(({ theme }) => ({
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 0, 0.4)" : "rgba(255, 255, 0, 0.8)",
+    color: theme.palette.mode === "dark" ? "#fff" : "#000",
+    borderRadius: "2px",
+    padding: "0 2px",
+    textDecoration: "underline",
 }));
 
 /**
@@ -45,15 +54,34 @@ const Line = memo(
      * @param {string} props.id - The id of the line
      * @param {number} props.start - The timestamp of the start of the line
      * @param {string} props.text - The text of the line
+     * @param {string} props.searchTerm - The term to highlight in the text
      * @param {function} props.handleClick - Callback function to handle when the line button is clicked
      */
-    function Line({ id, start, text, handleClick }) {
+    function Line({ id, start, text, searchTerm, handleClick }) {
         const theme = useTheme();
         const density = useAppStore((state) => state.density);
 
         const iconColor = theme.palette.id.main;
         const iconSize = density === "comfortable" ? "medium" : "small";
         const iconSx = density === "compact" ? { padding: 0 } : {};
+
+        // Highlighting logic
+        const highlightedContent = useMemo(() => {
+            if (!searchTerm || !searchTerm.trim()) {
+                return text;
+            }
+
+            try {
+                const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+                const parts = text.split(regex);
+
+                return parts.map((part, index) =>
+                    regex.test(part) ? <HighlightedText key={index}>{part}</HighlightedText> : part,
+                );
+            } catch {
+                return text;
+            }
+        }, [text, searchTerm]);
 
         return (
             <Box
@@ -81,7 +109,7 @@ const Line = memo(
                             <Link style={{ color: iconColor }} />
                         </IconButton>
                     </Tooltip>{" "}
-                    [<TimestampTheme theme={theme}>{start}</TimestampTheme>] {text}
+                    [<TimestampTheme theme={theme}>{start}</TimestampTheme>] {highlightedContent}
                 </Typography>
             </Box>
         );
@@ -97,6 +125,7 @@ export default function Transcript() {
     const location = useLocation();
     const virtuosoRef = useRef(null);
     const isMobile = useMediaQuery("(max-width:768px)");
+    const searchInputRef = useRef(null);
 
     const [date, setDate] = useState("");
     const [streamTitle, setStreamTitle] = useState("");
@@ -253,6 +282,28 @@ export default function Transcript() {
         }, 100);
     }, [isLoading, transcriptLines, location.hash]);
 
+    // Override Ctrl+F to focus search input
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === "f") {
+                event.preventDefault();
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus();
+                    searchInputRef.current.select();
+                }
+            } else if (event.key === "Escape") {
+                if (searchInputRef.current && document.activeElement === searchInputRef.current) {
+                    searchInputRef.current.blur();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, []);
+
     return (
         <Box sx={{ width: "100%" }}>
             {isLoading ? (
@@ -303,13 +354,35 @@ export default function Transcript() {
                                 {streamTitle}
                             </Typography>
                             {streamType === "Members" && (
-                                <Typography
-                                    variant="h6"
-                                    color="error"
-                                    sx={{ mb: 2, fontWeight: "bold", border: "1px solid red", p: 1, borderRadius: 1 }}
+                                <Paper
+                                    elevation={4}
+                                    sx={{
+                                        position: "sticky",
+                                        top: 0,
+                                        zIndex: 10,
+                                        p: 1.5,
+                                        mb: 2,
+                                        border: "2px solid",
+                                        borderColor: "error.main",
+                                        borderRadius: 2,
+                                    }}
                                 >
-                                    This is members content and should only be used for personal use, never shared.
-                                </Typography>
+                                    <Typography
+                                        variant="h6"
+                                        color="error"
+                                        sx={{
+                                            fontWeight: "bold",
+                                            textAlign: "center",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 1,
+                                        }}
+                                    >
+                                        <ErrorOutline /> This is members content and should only be used for personal
+                                        use, never shared.
+                                    </Typography>
+                                </Paper>
                             )}
                             <Typography sx={{ mb: 2 }}>
                                 {toLocalDate(date)} - {streamType} - {streamer}
@@ -321,9 +394,11 @@ export default function Transcript() {
                                     width: "100%",
                                     alignItems: "center",
                                     justifyContent: "center",
+                                    mb: 2,
                                 }}
                             >
                                 <TextField
+                                    inputRef={searchInputRef}
                                     label="Search Transcript"
                                     variant="outlined"
                                     size="small"
@@ -356,6 +431,7 @@ export default function Transcript() {
                             {/* Virtualized List */}
                             <Virtuoso
                                 ref={virtuosoRef}
+                                useWindowScroll
                                 style={{
                                     height:
                                         streamType === "Members"
@@ -373,6 +449,7 @@ export default function Transcript() {
                                         id={line.id}
                                         start={line.start}
                                         text={line.text}
+                                        searchTerm={searchTerm}
                                         handleClick={handleClick}
                                     />
                                 )}
