@@ -11,6 +11,7 @@ import Search from "./components/Search";
 import Graph from "./components/Graph";
 import Transcript from "./components/Transcript";
 import GraphSingle from "./components/GraphSingle";
+import UpdateAlert from "./components/UpdateAlert";
 
 function App() {
     const theme = useAppStore((state) => state.theme);
@@ -25,6 +26,7 @@ function App() {
     return (
         <ThemeProvider theme={colorTheme}>
             <CssBaseline />
+            <UpdateAlert />
             {window.maintenance ? (
                 <Routes>
                     <Route path={"*"} element={<Maintenance />} />
