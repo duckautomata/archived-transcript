@@ -33,6 +33,15 @@ export default defineConfig(() => {
             manifest: false,
             target: "esnext",
             outDir: "archived-transcript", // should be the same as base
+            rollupOptions: {
+                output: {
+                    manualChunks: (id) => {
+                        if (id.includes("node_modules")) {
+                            return "vendor";
+                        }
+                    },
+                },
+            },
         },
     };
 });
