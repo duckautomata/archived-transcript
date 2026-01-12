@@ -19,6 +19,7 @@ export const darkTheme = createTheme({
         },
         primary: {
             main: "#20A79A",
+            alt: "#71e2d7ff",
             background: "#FFFFFF",
         },
         secondary: {
@@ -27,6 +28,7 @@ export const darkTheme = createTheme({
         },
         background: {
             main: "#424242",
+            paper: "#202020",
         },
         error: {
             main: red.A400,
@@ -51,6 +53,7 @@ export const lightTheme = createTheme({
         },
         primary: {
             main: "#12645B",
+            alt: "#0a3b36",
             background: "#FFFFFF",
         },
         secondary: {
@@ -59,6 +62,7 @@ export const lightTheme = createTheme({
         },
         background: {
             main: "#17786E",
+            paper: "#f5f5f5",
         },
         error: {
             main: red.A400,

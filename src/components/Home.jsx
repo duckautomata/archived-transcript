@@ -55,7 +55,7 @@ export default function Home() {
                     color="primary"
                     fontWeight="bold"
                     sx={{
-                        background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.alt})`,
                         backgroundClip: "text",
                         textFillColor: "transparent",
                         mb: 2
