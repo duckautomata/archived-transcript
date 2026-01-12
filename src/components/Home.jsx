@@ -1,12 +1,21 @@
 import { Assessment, ManageSearch } from "@mui/icons-material";
-import { Typography, Box, useMediaQuery, Button, Grid, TextField } from "@mui/material";
+import {
+    Typography,
+    Box,
+    useMediaQuery,
+    Button,
+    Grid,
+    TextField,
+    Container,
+    Card,
+    CardActionArea,
+    CardContent,
+    Fade,
+    Stack
+} from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-/**
- * A basic homepage that can navigate users to search or graph.
- * Also has the option to instantly view a specific transcript or graph.
- */
 export default function Home() {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width:599px)");
@@ -38,121 +47,166 @@ export default function Home() {
     };
 
     return (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 4, gap: 2 }}>
-            {isMobile ? (
-                <Typography color="primary" variant="h4" component="h4" gutterBottom>
+        <Container maxWidth="lg" sx={{ minHeight: "80vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", py: 4 }}>
+            <Box sx={{ mb: 6, textAlign: "center" }}>
+                <Typography
+                    variant={isMobile ? "h3" : "h2"}
+                    component="h1"
+                    color="primary"
+                    fontWeight="bold"
+                    sx={{
+                        background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        backgroundClip: "text",
+                        textFillColor: "transparent",
+                        mb: 2
+                    }}
+                >
                     Archived Transcripts
                 </Typography>
-            ) : (
-                <Typography color="primary" variant="h2" component="h2" gutterBottom>
-                    Archived Transcripts
+                <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: "auto" }}>
+                    Search past streams or view specific transcripts.
                 </Typography>
-            )}
-            <Grid container spacing={6} sx={{ my: 4 }}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                    <Button
-                        fullWidth
-                        component="label"
-                        role={undefined}
-                        variant="outlined"
-                        tabIndex={-1}
-                        startIcon={<ManageSearch />}
-                        onClick={() => navigate("/search")}
-                        sx={{ height: 100, minWidth: isMobile ? "auto" : 150 }}
-                    >
-                        Search
-                    </Button>
+            </Box>
+
+            <Grid container spacing={4} justifyContent="center" alignItems="stretch" sx={{ mb: 6, maxWidth: 800 }}>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
+                    <Fade in={true} timeout={500}>
+                        <Card
+                            sx={{
+                                width: "100%",
+                                borderRadius: 4,
+                                transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                                "&:hover": {
+                                    transform: "translateY(-8px)",
+                                    boxShadow: (theme) => theme.shadows[10],
+                                },
+                            }}
+                            elevation={4}
+                        >
+                            <CardActionArea
+                                onClick={() => navigate("/search")}
+                                sx={{ height: "100%", p: 4, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+                            >
+                                <Box sx={{ mb: 2, p: 2, borderRadius: '50%', bgcolor: 'primary.light', color: 'primary.contrastText', display: 'flex' }}>
+                                    <ManageSearch fontSize="large" sx={{ fontSize: 40 }} />
+                                </Box>
+                                <CardContent sx={{ p: 0, textAlign: "center" }}>
+                                    <Typography gutterBottom variant="h5" component="div" fontWeight="medium">
+                                        Search
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Search through all archived transcripts.
+                                    </Typography>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Fade>
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                    <Button
-                        fullWidth
-                        component="label"
-                        role={undefined}
-                        variant="outlined"
-                        tabIndex={-1}
-                        startIcon={<Assessment />}
-                        onClick={() => navigate("/graph")}
-                        sx={{ height: 100, minWidth: isMobile ? "auto" : 150 }}
-                    >
-                        Graph
-                    </Button>
+                <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
+                    <Fade in={true} timeout={700}>
+                        <Card
+                            sx={{
+                                width: "100%",
+                                borderRadius: 4,
+                                transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                                "&:hover": {
+                                    transform: "translateY(-8px)",
+                                    boxShadow: (theme) => theme.shadows[10],
+                                },
+                            }}
+                            elevation={4}
+                        >
+                            <CardActionArea
+                                onClick={() => navigate("/graph")}
+                                sx={{ height: "100%", p: 4, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+                            >
+                                <Box sx={{ mb: 2, p: 2, borderRadius: '50%', bgcolor: 'secondary.light', color: 'secondary.contrastText', display: 'flex' }}>
+                                    <Assessment fontSize="large" sx={{ fontSize: 40 }} />
+                                </Box>
+                                <CardContent sx={{ p: 0, textAlign: "center" }}>
+                                    <Typography gutterBottom variant="h5" component="div" fontWeight="medium">
+                                        Graph
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        View word count graphs for streams.
+                                    </Typography>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Fade>
                 </Grid>
             </Grid>
 
             {/* --- Inputs Section --- */}
-            <Box
-                sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    width: "100%",
-                    maxWidth: 500,
-                    mt: 2,
-                }}
-            >
-                {/* 1. View Transcript by ID */}
-                <Box
+            <Fade in={true} timeout={900}>
+                <Card sx={{ p: 4, borderRadius: 4, maxWidth: 600, width: '100%' }} elevation={2}>
+                    <Stack spacing={3}>
+                        <Typography variant="h6" fontWeight="medium" align="center" gutterBottom>
+                            Direct Access
+                        </Typography>
+
+                        <Box sx={{ display: "flex", gap: 1, flexDirection: isMobile ? "column" : "row" }}>
+                            <TextField
+                                fullWidth
+                                label="View Transcript by ID"
+                                variant="outlined"
+                                value={transcriptId}
+                                onChange={(e) => setTranscriptId(e.target.value)}
+                                onKeyDown={handleTranscriptKeyDown}
+                                size="small"
+                            />
+                            <Button
+                                variant="contained"
+                                onClick={handleViewTranscript}
+                                disabled={!transcriptId.trim()}
+                                sx={{ minWidth: 80 }}
+                            >
+                                View
+                            </Button>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 1, flexDirection: isMobile ? "column" : "row" }}>
+                            <TextField
+                                fullWidth
+                                label="Graph Stream by ID"
+                                variant="outlined"
+                                value={graphId}
+                                onChange={(e) => setGraphId(e.target.value)}
+                                onKeyDown={handleGraphKeyDown}
+                                size="small"
+                            />
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={handleViewGraph}
+                                disabled={!graphId.trim()}
+                                sx={{ minWidth: 80 }}
+                            >
+                                Graph
+                            </Button>
+                        </Box>
+                    </Stack>
+                </Card>
+            </Fade>
+
+            <Box sx={{ mt: 6, textAlign: "center" }}>
+                <Typography variant="body1" color="text.secondary" gutterBottom>
+                    Looking for active streams?
+                </Typography>
+                <Button
+                    href="/live-transcript"
+                    variant="outlined"
+                    size="large"
                     sx={{
-                        display: "flex",
-                        flexDirection: isMobile ? "column" : "row",
-                        gap: 1,
+                        mt: 1,
+                        borderRadius: 2,
+                        px: 4,
+                        textTransform: "none"
                     }}
                 >
-                    <TextField
-                        fullWidth
-                        label="View Transcript by ID"
-                        variant="outlined"
-                        value={transcriptId}
-                        onChange={(e) => setTranscriptId(e.target.value)}
-                        onKeyDown={handleTranscriptKeyDown}
-                    />
-                    <Button
-                        variant="contained"
-                        onClick={handleViewTranscript}
-                        disabled={!transcriptId.trim()}
-                        fullWidth={isMobile}
-                        sx={{ minWidth: isMobile ? "auto" : "80px" }}
-                    >
-                        View
-                    </Button>
-                </Box>
-
-                {/* 2. Graph Stream by ID */}
-                <Box
-                    sx={{
-                        display: "flex",
-
-                        flexDirection: isMobile ? "column" : "row",
-                        gap: 1,
-                    }}
-                >
-                    <TextField
-                        fullWidth
-                        label="Graph Stream by ID"
-                        variant="outlined"
-                        value={graphId}
-                        onChange={(e) => setGraphId(e.target.value)}
-                        onKeyDown={handleGraphKeyDown}
-                    />
-                    <Button
-                        variant="contained"
-                        onClick={handleViewGraph}
-                        disabled={!graphId.trim()}
-                        fullWidth={isMobile}
-                        sx={{ minWidth: isMobile ? "auto" : "80px" }}
-                    >
-                        Graph
-                    </Button>
-                </Box>
+                    Go to Live-Transcript
+                </Button>
             </Box>
-            {/* --- End Inputs Section --- */}
-
-            <Typography paddingTop={isMobile ? 3 : 10}>
-                Looking for the transcript of an active stream instead?
-            </Typography>
-            <Button href="/live-transcript" variant="outlined">
-                Go to Live-Transcript
-            </Button>
-        </Box>
+        </Container>
     );
 }
