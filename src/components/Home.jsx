@@ -11,7 +11,7 @@ import {
     CardActionArea,
     CardContent,
     Fade,
-    Stack
+    Stack,
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -47,7 +47,17 @@ export default function Home() {
     };
 
     return (
-        <Container maxWidth="lg" sx={{ minHeight: "80vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", py: 4 }}>
+        <Container
+            maxWidth="lg"
+            sx={{
+                minHeight: "80vh",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 4,
+            }}
+        >
             <Box sx={{ mb: 6, textAlign: "center" }}>
                 <Typography
                     variant={isMobile ? "h3" : "h2"}
@@ -55,10 +65,11 @@ export default function Home() {
                     color="primary"
                     fontWeight="bold"
                     sx={{
-                        background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.alt})`,
+                        background: (theme) =>
+                            `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.alt})`,
                         backgroundClip: "text",
                         textFillColor: "transparent",
-                        mb: 2
+                        mb: 2,
                     }}
                 >
                     Archived Transcripts
@@ -69,7 +80,7 @@ export default function Home() {
             </Box>
 
             <Grid container spacing={4} justifyContent="center" alignItems="stretch" sx={{ mb: 6, maxWidth: 800 }}>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
+                <Grid item xs={12} sm={6} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={500}>
                         <Card
                             sx={{
@@ -85,9 +96,25 @@ export default function Home() {
                         >
                             <CardActionArea
                                 onClick={() => navigate("/search")}
-                                sx={{ height: "100%", p: 4, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+                                sx={{
+                                    height: "100%",
+                                    p: 4,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
                             >
-                                <Box sx={{ mb: 2, p: 2, borderRadius: '50%', bgcolor: 'primary.light', color: 'primary.contrastText', display: 'flex' }}>
+                                <Box
+                                    sx={{
+                                        mb: 2,
+                                        p: 2,
+                                        borderRadius: "50%",
+                                        bgcolor: "primary.light",
+                                        color: "primary.contrastText",
+                                        display: "flex",
+                                    }}
+                                >
                                     <ManageSearch fontSize="large" sx={{ fontSize: 40 }} />
                                 </Box>
                                 <CardContent sx={{ p: 0, textAlign: "center" }}>
@@ -102,7 +129,7 @@ export default function Home() {
                         </Card>
                     </Fade>
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
+                <Grid item xs={12} sm={6} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={700}>
                         <Card
                             sx={{
@@ -118,9 +145,25 @@ export default function Home() {
                         >
                             <CardActionArea
                                 onClick={() => navigate("/graph")}
-                                sx={{ height: "100%", p: 4, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}
+                                sx={{
+                                    height: "100%",
+                                    p: 4,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
                             >
-                                <Box sx={{ mb: 2, p: 2, borderRadius: '50%', bgcolor: 'secondary.light', color: 'secondary.contrastText', display: 'flex' }}>
+                                <Box
+                                    sx={{
+                                        mb: 2,
+                                        p: 2,
+                                        borderRadius: "50%",
+                                        bgcolor: "secondary.light",
+                                        color: "secondary.contrastText",
+                                        display: "flex",
+                                    }}
+                                >
                                     <Assessment fontSize="large" sx={{ fontSize: 40 }} />
                                 </Box>
                                 <CardContent sx={{ p: 0, textAlign: "center" }}>
@@ -139,7 +182,7 @@ export default function Home() {
 
             {/* --- Inputs Section --- */}
             <Fade in={true} timeout={900}>
-                <Card sx={{ p: 4, borderRadius: 4, maxWidth: 600, width: '100%' }} elevation={2}>
+                <Card sx={{ p: 4, borderRadius: 4, maxWidth: 600, width: "100%" }} elevation={2}>
                     <Stack spacing={3}>
                         <Typography variant="h6" fontWeight="medium" align="center" gutterBottom>
                             Direct Access
@@ -201,7 +244,7 @@ export default function Home() {
                         mt: 1,
                         borderRadius: 2,
                         px: 4,
-                        textTransform: "none"
+                        textTransform: "none",
                     }}
                 >
                     Go to Live-Transcript
