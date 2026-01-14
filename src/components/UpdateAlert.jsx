@@ -1,5 +1,7 @@
-import { Snackbar, Button, Alert, AlertTitle } from "@mui/material";
+import { useState } from "react";
+import { Snackbar, Button, Alert, AlertTitle, CircularProgress } from "@mui/material";
 import SystemUpdateIcon from "@mui/icons-material/SystemUpdate";
+import { useNavigate } from "react-router-dom";
 import { useVersionCheck } from "../logic/useVersionCheck";
 
 /**
@@ -7,9 +9,17 @@ import { useVersionCheck } from "../logic/useVersionCheck";
  */
 const UpdateAlert = () => {
     const { updateAvailable } = useVersionCheck();
+    const navigate = useNavigate();
+    const [refreshing, setRefreshing] = useState(false);
 
     const handleRefresh = () => {
-        window.location.reload(true);
+        setRefreshing(true);
+        // due to the GitHub 404 redirection logic, it turns any subpage into a query string, which turns on caching.
+        // To bypass this, we navigate to the root page and then reload the page. Which does not cache the page.
+        navigate("/", { replace: true });
+        setTimeout(() => {
+            window.location.reload(true);
+        }, 100);
     };
 
     return (
@@ -43,7 +53,8 @@ const UpdateAlert = () => {
                     <Button
                         variant="contained"
                         size="small"
-                        startIcon={<SystemUpdateIcon />}
+                        disabled={refreshing}
+                        startIcon={refreshing ? <CircularProgress size={20} color="inherit" /> : <SystemUpdateIcon />}
                         onClick={handleRefresh}
                         sx={{
                             backgroundColor: "#FFFFFF",
@@ -60,7 +71,7 @@ const UpdateAlert = () => {
                             },
                         }}
                     >
-                        Update
+                        {refreshing ? "Updating..." : "Update"}
                     </Button>
                 }
             >
