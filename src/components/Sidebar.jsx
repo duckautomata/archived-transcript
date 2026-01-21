@@ -95,8 +95,14 @@ export default function Sidebar({ children }) {
                     <List>
                         {/* Collapse/Expand Button */}
                         <ListItem disablePadding>
-                            <ListItemButton onClick={handleCollapseToggle} sx={{ justifyContent: "center" }}>
-                                <ListItemIcon sx={{ minWidth: 0 }}>
+                            <ListItemButton
+                                onClick={handleCollapseToggle}
+                                sx={{
+                                    justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                    px: 2.5,
+                                }}
+                            >
+                                <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
                                     <MenuIcon />
                                 </ListItemIcon>
                                 {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="" />}
@@ -108,11 +114,12 @@ export default function Sidebar({ children }) {
                                 <ListItemButton
                                     onClick={handleHomeButton}
                                     sx={{
-                                        paddingLeft: !isMobile && !sidebarOpen ? 2.4 : undefined,
+                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                        px: 2.5,
                                         overflow: "hidden",
                                     }}
                                 >
-                                    <ListItemIcon>
+                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
                                         <Home />
                                     </ListItemIcon>
                                     {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="Home" />}
@@ -132,11 +139,14 @@ export default function Sidebar({ children }) {
                                         selected={window.location.pathname.split("/")[3] === page.value}
                                         onClick={() => handlePageChange(page.value)}
                                         sx={{
-                                            paddingLeft: !isMobile && !sidebarOpen ? 2 : undefined,
+                                            justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                            px: 2.5,
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <ListItemIcon>{page.icon}</ListItemIcon>
+                                        <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                                            {page.icon}
+                                        </ListItemIcon>
                                         {((!isMobile && sidebarOpen) || isMobile) && (
                                             <ListItemText primary={page.name} />
                                         )}
@@ -155,9 +165,13 @@ export default function Sidebar({ children }) {
                                             "noopener noreferrer",
                                         );
                                     }}
-                                    sx={{ paddingLeft: !isMobile && !sidebarOpen ? 2 : undefined, overflow: "hidden" }}
+                                    sx={{
+                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                        px: 2.5,
+                                        overflow: "hidden",
+                                    }}
                                 >
-                                    <ListItemIcon>
+                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
                                         <GitHub />
                                     </ListItemIcon>
                                     {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="GitHub" />}
@@ -169,9 +183,13 @@ export default function Sidebar({ children }) {
                             <Tooltip title={!isMobile && !sidebarOpen ? "Help" : ""} placement="right">
                                 <ListItemButton
                                     onClick={() => setHelpOpen(true)}
-                                    sx={{ paddingLeft: !isMobile && !sidebarOpen ? 2 : undefined, overflow: "hidden" }}
+                                    sx={{
+                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                        px: 2.5,
+                                        overflow: "hidden",
+                                    }}
                                 >
-                                    <ListItemIcon>
+                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
                                         <Help />
                                     </ListItemIcon>
                                     {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="Help" />}
@@ -183,9 +201,13 @@ export default function Sidebar({ children }) {
                             <Tooltip title={!isMobile && !sidebarOpen ? "Settings" : ""} placement="right">
                                 <ListItemButton
                                     onClick={() => setSettingsOpen(true)}
-                                    sx={{ paddingLeft: !isMobile && !sidebarOpen ? 2 : undefined, overflow: "hidden" }}
+                                    sx={{
+                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                        px: 2.5,
+                                        overflow: "hidden",
+                                    }}
                                 >
-                                    <ListItemIcon>
+                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
                                         <SettingsIcon />
                                     </ListItemIcon>
                                     {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="Settings" />}

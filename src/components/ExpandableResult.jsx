@@ -108,14 +108,13 @@ export default memo(
      * @param {TranscriptSearch} props.stream - The result of a transcript search for a specific stream.
      * @param {string} props.targetWord - The word to highlight.
      */
-    function ExpandableResult({ stream, targetWord }) {
+    function ExpandableResult({ stream, targetWord, isExpanded, onToggle }) {
         const navigate = useNavigate();
         const isMobile = useMediaQuery("(max-width:768px)");
         const { id, streamer, date, streamType, title, contexts } = stream;
         const lineCount = contexts.length;
         const limited = lineCount === contextLimit;
 
-        const [isOpen, setIsOpen] = useState(false);
         const [dialogOpen, setDialogOpen] = useState(false);
         const [actionContext, setActionContext] = useState({
             timestamp: "",
@@ -258,13 +257,14 @@ export default memo(
         };
 
         const handleToggle = (e) => {
-            setIsOpen(e.currentTarget.open);
+            onToggle(e.currentTarget.open);
         };
 
         return (
             <Box
                 component="details"
                 onToggle={handleToggle}
+                open={isExpanded}
                 sx={{
                     mb: marginBottom,
                     borderRadius: 4,
@@ -348,7 +348,7 @@ export default memo(
                 </summary>
 
                 {/* This div is the content that expands. Only render if it is open*/}
-                {isOpen && (
+                {isExpanded && (
                     <div style={detailsContentStyle}>
                         <Stack
                             direction={isMobile ? "column" : "row"}

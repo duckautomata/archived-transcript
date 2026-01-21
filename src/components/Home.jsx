@@ -80,7 +80,7 @@ export default function Home() {
             </Box>
 
             <Grid container spacing={4} justifyContent="center" alignItems="stretch" sx={{ mb: 6, maxWidth: 800 }}>
-                <Grid item xs={12} sm={6} sx={{ display: "flex" }}>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={500}>
                         <Card
                             sx={{
@@ -129,7 +129,7 @@ export default function Home() {
                         </Card>
                     </Fade>
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ display: "flex" }}>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={700}>
                         <Card
                             sx={{

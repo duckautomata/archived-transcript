@@ -37,6 +37,7 @@ export default function Search() {
     const [error, setError] = useState(null);
     const [streamsData, setStreamsData] = useState(/** @type {TranscriptSearch[]} */ ([]));
     const [submittedSearchText, setSubmittedSearchText] = useState(queryParams.searchText);
+    const [expandedItems, setExpandedItems] = useState(new Set());
     const totalStreams = streamsData.length;
 
     const handleSearch = useCallback(async () => {
@@ -44,6 +45,7 @@ export default function Search() {
         setSearched(true);
         setError(null);
         setStreamsData([]);
+        setExpandedItems(new Set());
 
         try {
             const response = await searchTranscripts(queryParams);
@@ -57,6 +59,18 @@ export default function Search() {
             setIsLoading(false);
         }
     }, [queryParams]);
+
+    const handleToggleResult = useCallback((id, isOpen) => {
+        setExpandedItems((prev) => {
+            const next = new Set(prev);
+            if (isOpen) {
+                next.add(id);
+            } else {
+                next.delete(id);
+            }
+            return next;
+        });
+    }, []);
 
     return (
         <Container sx={{ padding: 0 }}>
@@ -100,7 +114,13 @@ export default function Search() {
                             style={{ height: "80vh", marginBottom: "40px" }}
                             data={streamsData}
                             itemContent={(_index, stream) => (
-                                <ExpandableResult key={stream.id} stream={stream} targetWord={submittedSearchText} />
+                                <ExpandableResult
+                                    key={stream.id}
+                                    stream={stream}
+                                    targetWord={submittedSearchText}
+                                    isExpanded={expandedItems.has(stream.id)}
+                                    onToggle={(isOpen) => handleToggleResult(stream.id, isOpen)}
+                                />
                             )}
                         />
                     </Box>
