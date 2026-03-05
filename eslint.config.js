@@ -32,6 +32,7 @@ export default [
             "react/jsx-no-target-blank": "off",
             "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
             "no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z_]" }],
+            "no-useless-assignment": "off",
             "no-console": "error",
             "no-restricted-syntax": [
                 "error",

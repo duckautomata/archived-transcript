@@ -79,7 +79,7 @@ export const formatExpirationDate = (isoDateStr) => {
     const diffTime = date.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    let daysString;
+    let daysString = "";
     if (diffDays > 0) {
         daysString = ` in ${diffDays} day${diffDays === 1 ? "" : "s"}`;
     } else if (diffDays === 0) {
