@@ -101,7 +101,7 @@ async function apiFetch(url, options = {}) {
     if (!response.ok) {
         const defaultErrorMessage = `HTTP error ${response.status}: ${response.statusText}`;
         const errorStatus = response.status;
-        let errorMessage = "";
+        let errorMessage;
         try {
             // Attempt to get more info from the response body
             const errorData = await response.json();
