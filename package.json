@@ -9,7 +9,8 @@
         "build": "vite build",
         "format": "prettier --write .",
         "lint": "eslint .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "deploy": "npm run build && wrangler deploy"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
@@ -38,7 +39,8 @@
         "globals": "^17.4.0",
         "prettier": "^3.8.1",
         "vite": "^8.0.0",
-        "vitest": "^4.1.0"
+        "vitest": "^4.1.0",
+        "wrangler": "^4.72.0"
     },
     "overrides": {
         "eslint-plugin-react": {
