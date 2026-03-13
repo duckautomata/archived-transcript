@@ -15,8 +15,8 @@ export default {
                 return response;
             }
 
-            // It's a navigation route (no extension). Fallback to the SPA's index.html.
-            url.pathname = "/archived-transcript/index.html";
+            // It's a navigation route (no extension). Fallback to the SPA's root.
+            url.pathname = "/archived-transcript/";
             return env.ASSETS.fetch(new Request(url, request));
         }
 
