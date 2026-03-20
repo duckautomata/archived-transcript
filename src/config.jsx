@@ -1,2 +1,2 @@
-export const server = "https://archive.duck-automata.com";
+export const server = "https://api.duck-automata.com/archive";
 export const contextLimit = 20;
