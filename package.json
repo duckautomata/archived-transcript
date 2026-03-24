@@ -17,7 +17,7 @@
         "@fontsource/roboto": "^5.2.10",
         "@mui/icons-material": "^7.3.9",
         "@mui/material": "^7.3.9",
-        "@mui/x-charts": "^8.27.5",
+        "@mui/x-charts": "^8.28.0",
         "js-cookie": "^3.0.5",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
