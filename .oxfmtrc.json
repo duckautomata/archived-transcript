@@ -1,0 +1,23 @@
+{
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "printWidth": 120,
+    "tabWidth": 4,
+    "proseWrap": "preserve",
+    "semi": true,
+    "trailingComma": "all",
+    "singleQuote": false,
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "useTabs": false,
+    "sortPackageJson": false,
+    "ignorePatterns": [
+        "dist",
+        "assets",
+        "public",
+        "archived-transcript",
+        ".yarn",
+        ".husky",
+        "package-lock.json",
+        ".yarnrc.yml"
+    ]
+}

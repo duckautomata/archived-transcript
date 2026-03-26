@@ -1,17 +1,11 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    groups:
-      minor-and-patch-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-      major-updates:
-        patterns:
-          - "*"
+    - package-ecosystem: "npm"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+      groups:
+          all-dependencies:
+              patterns:
+                  - "*"

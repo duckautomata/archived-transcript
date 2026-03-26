@@ -198,7 +198,7 @@ export default function HelpPopup({ open, setOpen }) {
                                 </Typography>
                                 <HelpImage src={images.searchNoText} alt="No Text Search" />
                                 <br />
-                                <Typography variant="body1" gutterBottom>
+                                <Typography component="div" variant="body1" gutterBottom>
                                     Once the search has been completed, you will see a list of streams that fit the
                                     criteria. You can click on a stream to:
                                     <ul>
@@ -208,7 +208,7 @@ export default function HelpPopup({ open, setOpen }) {
                                     </ul>
                                 </Typography>
                                 <HelpImage src={images.searchText} alt="Text Search" />
-                                <Typography variant="body1" gutterBottom>
+                                <Typography component="div" variant="body1" gutterBottom>
                                     You can also click on the link button on a context line to:
                                     <ul>
                                         <li>Jump to the transcript at that timestamp</li>
@@ -229,7 +229,7 @@ export default function HelpPopup({ open, setOpen }) {
                                 <Typography>Graph</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
-                                <Typography variant="body1" gutterBottom>
+                                <Typography component="div" variant="body1" gutterBottom>
                                     You can graph word or phase usage over time. There are two types of graph:
                                     <ul>
                                         <li>Across multiple streams</li>

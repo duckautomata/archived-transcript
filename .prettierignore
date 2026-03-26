@@ -1,9 +1,0 @@
-dist
-assets
-public
-archived-transcript
-
-.yarn
-.husky
-package-lock.json
-.yarnrc.yml

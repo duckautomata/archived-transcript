@@ -1,3 +1,4 @@
+// oxlint-disable no-console
 import { useEffect, useState } from "react";
 
 /* global __BUILD_TIME__ */
@@ -22,11 +23,11 @@ export const useVersionCheck = (intervalMs = 5 * 60 * 1000) => {
 
             // __BUILD_TIME__ is injected by Vite at build time
             if (typeof __BUILD_TIME__ !== "undefined" && data.buildTime > __BUILD_TIME__) {
-                console.log("Update available!", data.buildTime, __BUILD_TIME__); // eslint-disable-line no-console
+                console.log("Update available!", data.buildTime, __BUILD_TIME__);
                 setUpdateAvailable(true);
             }
         } catch (error) {
-            console.error("Failed to check for updates:", error); // eslint-disable-line no-console
+            console.error("Failed to check for updates:", error);
         }
     };
 

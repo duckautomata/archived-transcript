@@ -70,8 +70,4 @@ Raise an issue and detail what idea you have or would like to see.
 
 ### Building a new release
 
-This project is hosted in a Cloudflare worker. If you have access to the worker, then run the deploy command to update the contents.
-
-```bash
-npm run deploy
-```
+New releases are automatically built and deployed when a new pull request is merged into master.

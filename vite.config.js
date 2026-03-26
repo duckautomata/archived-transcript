@@ -1,3 +1,4 @@
+// oxlint-disable no-console
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import fs from "fs";
@@ -16,7 +17,7 @@ export default defineConfig(() => {
                     const outDir = options.dir || "archived-transcript";
                     const versionFilePath = path.resolve(outDir, "version.json");
                     fs.writeFileSync(versionFilePath, JSON.stringify({ buildTime }));
-                    console.log(`\nGenerated version.json with buildTime: ${buildTime}`); // eslint-disable-line no-console
+                    console.log(`\nGenerated version.json with buildTime: ${buildTime}`);
                 },
             },
         ],
@@ -27,6 +28,11 @@ export default defineConfig(() => {
         server: {
             port: 5173,
             open: false,
+        },
+        test: {
+            environment: "jsdom",
+            globals: true,
+            setupFiles: "./src/setupTests.js",
         },
         build: {
             emptyOutDir: true,
