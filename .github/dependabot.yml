@@ -5,7 +5,25 @@ updates:
       schedule:
           interval: "weekly"
           day: "monday"
+      commit-message:
+          prefix: "chore"
+      labels:
+          - "dependabot"
       groups:
-          all-dependencies:
+          npm-deps:
+              patterns:
+                  - "*"
+
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+      commit-message:
+          prefix: "chore"
+      labels:
+          - "dependabot"
+      groups:
+          actions-deps:
               patterns:
                   - "*"
