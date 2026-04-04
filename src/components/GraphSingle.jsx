@@ -1,5 +1,20 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { Typography, Box, Container, Button, CircularProgress, Alert } from "@mui/material";
+import {
+    Typography,
+    Box,
+    Container,
+    Button,
+    CircularProgress,
+    Alert,
+    Paper,
+    Divider,
+    Chip,
+    Stack,
+    alpha,
+    Fade,
+    Grid,
+    useMediaQuery,
+} from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 import Searchbar from "./Searchbar";
@@ -7,7 +22,7 @@ import { LineChart } from "@mui/x-charts";
 import { useAppStore } from "../store/store";
 import { getGraphById, getStreamMetadata } from "../logic/api";
 import { secondsToTime, timeToSeconds } from "../logic/timezone";
-import { Info } from "@mui/icons-material";
+import { Info, BarChart, History, CalendarMonth, LocalOffer, Person } from "@mui/icons-material";
 
 /**
  * @typedef {import('../logic/api').StreamMetadata} StreamMetadata
@@ -28,6 +43,8 @@ export default function GraphSingle() {
     const [error, setError] = useState(null);
     const [stats, setStats] = useState(null);
     const [hasSearched, setHasSearched] = useState(false);
+
+    const isMobile = useMediaQuery("(max-width:600px)");
 
     const queryParams = useAppStore(
         useShallow((state) => {
@@ -133,6 +150,12 @@ export default function GraphSingle() {
         });
     }, [data]);
 
+    const domain = useMemo(() => {
+        if (processedData.length === 0) return [0, 0];
+        const times = processedData.map((point) => point.x);
+        return [Math.min(...times), Math.max(...times)];
+    }, [processedData]);
+
     return (
         <Container sx={{ padding: 0 }}>
             {metaError?.status === 404 ? (
@@ -162,22 +185,71 @@ export default function GraphSingle() {
                     </Typography>
 
                     {metadata && (
-                        <Box sx={{ mb: 2, typography: "body2", color: "text.secondary", pl: 0.5 }}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: isMobile ? 1.5 : 2,
+                                mb: 3,
+                                // center div
+                                borderRadius: "12px",
+                                border: "1px solid",
+                                borderColor: "divider",
+                                backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.5),
+                            }}
+                        >
                             {metadata.streamType === "Members" && (
-                                <Typography
-                                    variant="subtitle1"
-                                    color="error"
-                                    sx={{ mb: 2, fontWeight: "bold", border: "1px solid red", p: 1, borderRadius: 1 }}
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        p: 1.5,
+                                        mb: 2,
+                                        backgroundColor: alpha("#ef4444", 0.05),
+                                        border: "1px solid",
+                                        borderColor: alpha("#ef4444", 0.2),
+                                        borderRadius: "8px",
+                                    }}
                                 >
-                                    This is members content and should only be used for personal use, never shared.
-                                </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        color="error"
+                                        sx={{ fontWeight: "bold", display: "block" }}
+                                    >
+                                        Members-only content: For personal use only. Do not share.
+                                    </Typography>
+                                </Paper>
                             )}
-                            <Typography variant="body2">
-                                <b>Streamer:</b> {metadata.streamer} {" - "}
-                                <b>Date:</b> {metadata.date} {" - "}
-                                <b>Type:</b> {metadata.streamType}
-                            </Typography>
-                        </Box>
+                            <Stack
+                                direction={isMobile ? "column" : "row"}
+                                spacing={isMobile ? 1 : 2}
+                                divider={<Divider orientation="vertical" flexItem />}
+                                sx={{ flexWrap: "wrap", gap: 1 }}
+                            >
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <Person fontSize="small" color="action" />
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {metadata.streamer}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <CalendarMonth fontSize="small" color="action" />
+                                    <Typography variant="body2">{metadata.date}</Typography>
+                                </Box>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    <LocalOffer fontSize="small" color="action" />
+                                    <Chip
+                                        label={metadata.streamType}
+                                        size="small"
+                                        sx={{
+                                            fontWeight: "bold",
+                                            backgroundColor: alpha("#3b82f6", 0.1),
+                                            color: "#3b82f6",
+                                            borderRadius: "6px",
+                                            height: 20,
+                                        }}
+                                    />
+                                </Box>
+                            </Stack>
+                        </Paper>
                     )}
                     {metaError && (
                         <Alert severity="error" sx={{ my: 2 }}>
@@ -186,8 +258,21 @@ export default function GraphSingle() {
                     )}
 
                     <Searchbar />
-                    <Button variant="outlined" fullWidth onClick={handleGraph} disabled={isLoading}>
-                        {isLoading ? "Graphing..." : "Graph"}
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handleGraph}
+                        disabled={isLoading}
+                        sx={{
+                            mt: 2,
+                            py: 1.5,
+                            borderRadius: "12px",
+                            fontWeight: "bold",
+                            boxShadow: "none",
+                            "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
+                        }}
+                    >
+                        {isLoading ? "Generating Graph..." : "Generate Graph"}
                     </Button>
 
                     {/* --- Results Display Area --- */}
@@ -211,48 +296,140 @@ export default function GraphSingle() {
                         )}
 
                         {data.length > 0 && !isLoading && (
-                            <Box>
-                                {stats && (
-                                    <Box sx={{ mb: 2 }}>
-                                        <Typography variant="h6" component="h6" gutterBottom>
-                                            Graph Statistics
-                                        </Typography>
-                                        <Typography variant="body1">
-                                            <b>Total Hits:</b> {stats.total.toLocaleString()}
-                                        </Typography>
-                                    </Box>
-                                )}
+                            <Fade in={data.length > 0}>
+                                <Box>
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            p: isMobile ? 0.5 : 3,
+                                            mb: 4,
+                                            borderRadius: isMobile ? "8px" : "16px",
+                                            border: "1px solid",
+                                            borderColor: "divider",
+                                            background: (theme) =>
+                                                `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.5)})`,
+                                            backdropFilter: "blur(8px)",
+                                        }}
+                                    >
+                                        {stats && (
+                                            <Box sx={{ mb: 4 }}>
+                                                <Grid container spacing={isMobile ? 1.5 : 3}>
+                                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                                        <Paper
+                                                            variant="outlined"
+                                                            sx={{
+                                                                p: 2,
+                                                                borderRadius: "12px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: 2,
+                                                            }}
+                                                        >
+                                                            <Box
+                                                                sx={{
+                                                                    p: 1,
+                                                                    borderRadius: "8px",
+                                                                    bgcolor: alpha("#10b981", 0.1),
+                                                                    color: "#10b981",
+                                                                }}
+                                                            >
+                                                                <BarChart />
+                                                            </Box>
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    Full Stream Matches
+                                                                </Typography>
+                                                                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                                                                    {stats.total.toLocaleString()}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Paper>
+                                                    </Grid>
+                                                    <Grid size={{ xs: 12, sm: 6 }}>
+                                                        <Paper
+                                                            variant="outlined"
+                                                            sx={{
+                                                                p: 2,
+                                                                borderRadius: "12px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                gap: 2,
+                                                            }}
+                                                        >
+                                                            <Box
+                                                                sx={{
+                                                                    p: 1,
+                                                                    borderRadius: "8px",
+                                                                    bgcolor: alpha("#6366f1", 0.1),
+                                                                    color: "#6366f1",
+                                                                }}
+                                                            >
+                                                                <History />
+                                                            </Box>
+                                                            <Box>
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    Recorded Points
+                                                                </Typography>
+                                                                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                                                                    {data.length}
+                                                                </Typography>
+                                                            </Box>
+                                                        </Paper>
+                                                    </Grid>
+                                                </Grid>
+                                            </Box>
+                                        )}
 
-                                <Box sx={{ height: 400, width: "100%" }}>
-                                    <LineChart
-                                        dataset={processedData}
-                                        series={[
-                                            {
-                                                dataKey: "y",
-                                                label: "Cumulative Count",
-                                                showMark: false,
-                                                curve: "linear",
-                                            },
-                                        ]}
-                                        xAxis={[
-                                            {
-                                                scaleType: "linear",
-                                                dataKey: "x",
-                                                label: "Time",
-                                                valueFormatter: secondsToTime,
-                                            },
-                                        ]}
-                                        yAxis={[
-                                            {
-                                                label: "Cumulative Count",
-                                                min: 0,
-                                            },
-                                        ]}
-                                        tooltip={{ trigger: "axis" }}
-                                        grid={{ vertical: false, horizontal: true }}
-                                    />
+                                        <Divider sx={{ mb: 4, opacity: 0.6 }} />
+
+                                        <Box sx={{ height: 400, width: "100%" }}>
+                                            <LineChart
+                                                dataset={processedData}
+                                                margin={{
+                                                    left: isMobile ? 35 : 60,
+                                                    right: isMobile ? 15 : 30,
+                                                    top: 20,
+                                                    bottom: 60,
+                                                }}
+                                                series={[
+                                                    {
+                                                        dataKey: "y",
+                                                        label: isMobile ? undefined : "Cumulative Matches",
+                                                        showMark: false,
+                                                        curve: "linear",
+                                                        area: true,
+                                                        color: "#10b981",
+                                                    },
+                                                ]}
+                                                xAxis={[
+                                                    {
+                                                        scaleType: "linear",
+                                                        dataKey: "x",
+                                                        label: isMobile ? undefined : "Stream Time",
+                                                        min: domain[0],
+                                                        max: domain[1],
+                                                        valueFormatter: (v) => (v != null ? secondsToTime(v) : ""),
+                                                        padding: { left: 0, right: 0 },
+                                                    },
+                                                ]}
+                                                yAxis={[
+                                                    {
+                                                        label: isMobile ? undefined : "Matches",
+                                                        min: 0,
+                                                    },
+                                                ]}
+                                                tooltip={{ trigger: "axis" }}
+                                                slotProps={{
+                                                    legend: {
+                                                        hidden: isMobile,
+                                                    },
+                                                }}
+                                                grid={{ vertical: false, horizontal: true }}
+                                            />
+                                        </Box>
+                                    </Paper>
                                 </Box>
-                            </Box>
+                            </Fade>
                         )}
                     </Box>
                 </Box>

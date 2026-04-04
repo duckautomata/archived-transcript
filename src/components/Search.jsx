@@ -9,6 +9,8 @@ import { searchTranscripts } from "../logic/api";
 import { useAppStore } from "../store/store";
 import { useShallow } from "zustand/shallow";
 import { Virtuoso } from "react-virtuoso";
+import { Fab, Zoom, useScrollTrigger } from "@mui/material";
+import { KeyboardArrowUp } from "@mui/icons-material";
 
 /**
  * @typedef {import('../logic/api').TranscriptSearch} TranscriptSearch
@@ -39,6 +41,18 @@ export default function Search() {
     const [submittedSearchText, setSubmittedSearchText] = useState(queryParams.searchText);
     const [expandedItems, setExpandedItems] = useState(new Set());
     const totalStreams = streamsData.length;
+
+    const trigger = useScrollTrigger({
+        disableHysteresis: true,
+        threshold: 300,
+    });
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "instant",
+        });
+    };
 
     const handleSearch = useCallback(async () => {
         setIsLoading(true);
@@ -107,11 +121,22 @@ export default function Search() {
                 {/* Show results and stats if data exists */}
                 {totalStreams > 0 && !isLoading && (
                     <Box>
-                        <Typography variant="body2" sx={{ mb: 2, textAlign: "center", color: "text.secondary" }}>
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                mb: 3,
+                                textAlign: "center",
+                                color: "text.primary",
+                                fontWeight: "bold",
+                                borderBottom: "1px solid",
+                                borderColor: "divider",
+                                pb: 1,
+                            }}
+                        >
                             Found {totalStreams} streams
                         </Typography>
                         <Virtuoso
-                            style={{ height: "80vh", marginBottom: "40px" }}
+                            useWindowScroll
                             data={streamsData}
                             itemContent={(_index, stream) => (
                                 <ExpandableResult
@@ -126,6 +151,23 @@ export default function Search() {
                     </Box>
                 )}
             </Box>
+
+            <Zoom in={trigger}>
+                <Fab
+                    color="primary"
+                    size="small"
+                    aria-label="scroll back to top"
+                    onClick={scrollToTop}
+                    sx={{
+                        position: "fixed",
+                        bottom: 32,
+                        right: 32,
+                        boxShadow: 3,
+                    }}
+                >
+                    <KeyboardArrowUp />
+                </Fab>
+            </Zoom>
         </Container>
     );
 }
