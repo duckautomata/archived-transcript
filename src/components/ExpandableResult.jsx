@@ -267,6 +267,7 @@ export default memo(
                     onChange={handleAccordionChange}
                     elevation={0}
                     disableGutters
+                    data-testid={isExpanded ? `expanded-result-${stream.id}` : `expandable-result-${stream.id}`}
                     slotProps={{ transition: { unmountOnExit: true } }}
                     sx={{
                         borderRadius: "12px !important",
@@ -284,6 +285,7 @@ export default memo(
                 >
                     <AccordionSummary
                         expandIcon={<ExpandMore />}
+                        data-testid="expand-more"
                         sx={{
                             px: 2,
                             py: 1,
@@ -445,7 +447,11 @@ export default memo(
                                             borderRadius: "8px",
                                         }}
                                     >
-                                        <Typography variant="caption" color="warning.main" sx={{ display: "block", fontWeight: 500 }}>
+                                        <Typography
+                                            variant="caption"
+                                            color="warning.main"
+                                            sx={{ display: "block", fontWeight: 500 }}
+                                        >
                                             Note: Results are limited. View Full Transcript to see all matches.
                                         </Typography>
                                     </Paper>

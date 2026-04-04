@@ -122,7 +122,13 @@ export default function Graph() {
     return (
         <Container sx={{ padding: 0 }}>
             <Box sx={{ my: 4 }}>
-                <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
+                <Typography
+                    color="primary"
+                    variant="h5"
+                    component="h5"
+                    data-testid="graph-title"
+                    sx={{ mb: 2, wordBreak: "break-word" }}
+                >
                     Graph Transcripts
                 </Typography>
                 <Searchbar onSearch={handleGraph} />
@@ -132,6 +138,7 @@ export default function Graph() {
                     fullWidth
                     onClick={handleGraph}
                     disabled={isLoading}
+                    data-testid="generate-graph"
                     sx={{
                         mt: 2,
                         py: 1.5,
@@ -153,14 +160,14 @@ export default function Graph() {
                     )}
 
                     {error && (
-                        <Alert severity="error" sx={{ my: 2 }}>
+                        <Alert data-testid="input-error" severity="error" sx={{ my: 2 }}>
                             {error}
                         </Alert>
                     )}
 
                     {/* Show "No data" message only after a search and if not loading/error */}
                     {hasSearched && !isLoading && !error && data.length === 0 && (
-                        <Alert severity="info" sx={{ my: 2 }}>
+                        <Alert data-testid="no-data-error" severity="info" sx={{ my: 2 }}>
                             No data found for the selected criteria.
                         </Alert>
                     )}
@@ -194,6 +201,7 @@ export default function Graph() {
                                                     checked={isCumulative}
                                                     onChange={(e) => setIsCumulative(e.target.checked)}
                                                     color="primary"
+                                                    data-testid="cumulative-view-switch"
                                                 />
                                             }
                                             label={
@@ -317,25 +325,25 @@ export default function Graph() {
                                     <Divider sx={{ mb: 4, opacity: 0.6 }} />
 
                                     {/* --- Chart Container --- */}
-                                    <Box sx={{ height: 500, width: "100%" }}>
-                                            <LineChart
-                                                dataset={processedData}
-                                                margin={{
-                                                    left: isMobile ? 35 : 60,
-                                                    right: isMobile ? 15 : 70,
-                                                    top: 20,
-                                                    bottom: 60,
-                                                }}
-                                                series={[
-                                                    {
-                                                        dataKey: "y",
-                                                        label: isCumulative ? "Cumulative Matches" : "Matches",
-                                                        showMark: false,
-                                                        curve: "linear",
-                                                        area: isCumulative,
-                                                        color: isCumulative ? "#8b5cf6" : "#3b82f6",
-                                                    },
-                                                ]}
+                                    <Box data-testid="graph-chart" sx={{ height: 500, width: "100%" }}>
+                                        <LineChart
+                                            dataset={processedData}
+                                            margin={{
+                                                left: isMobile ? 35 : 60,
+                                                right: isMobile ? 15 : 70,
+                                                top: 20,
+                                                bottom: 60,
+                                            }}
+                                            series={[
+                                                {
+                                                    dataKey: "y",
+                                                    label: isCumulative ? "Cumulative Matches" : "Matches",
+                                                    showMark: false,
+                                                    curve: "linear",
+                                                    area: isCumulative,
+                                                    color: isCumulative ? "#8b5cf6" : "#3b82f6",
+                                                },
+                                            ]}
                                             xAxis={[
                                                 {
                                                     scaleType: "time",
@@ -344,7 +352,9 @@ export default function Graph() {
                                                     min: domain[0],
                                                     max: domain[1],
                                                     valueFormatter: (date) =>
-                                                        date ? date.toLocaleString(undefined, { dateStyle: "medium" }) : "",
+                                                        date
+                                                            ? date.toLocaleString(undefined, { dateStyle: "medium" })
+                                                            : "",
                                                     padding: { left: 0, right: 0 },
                                                 },
                                             ]}

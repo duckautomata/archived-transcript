@@ -94,7 +94,13 @@ export default function Search() {
                 </Typography>
                 <Searchbar onSearch={handleSearch} />
                 <SearchFilter />
-                <Button variant="outlined" onClick={handleSearch} disabled={isLoading} fullWidth>
+                <Button
+                    variant="outlined"
+                    data-testid="search-transcript"
+                    onClick={handleSearch}
+                    disabled={isLoading}
+                    fullWidth
+                >
                     {isLoading ? "Searching..." : "Search"}
                 </Button>
             </Box>
@@ -106,14 +112,14 @@ export default function Search() {
                 )}
 
                 {error && (
-                    <Alert severity="error" sx={{ my: 2 }}>
+                    <Alert severity="error" data-testid="search-error" sx={{ my: 2 }}>
                         {error}
                     </Alert>
                 )}
 
                 {/* Show "No data" message only after a search and if not loading/error */}
                 {searched && !isLoading && !error && totalStreams === 0 && (
-                    <Alert severity="info" sx={{ my: 2 }}>
+                    <Alert severity="info" data-testid="no-data-error" sx={{ my: 2 }}>
                         No data found for the selected criteria.
                     </Alert>
                 )}
@@ -123,6 +129,7 @@ export default function Search() {
                     <Box>
                         <Typography
                             variant="h6"
+                            data-testid="search-results"
                             sx={{
                                 mb: 3,
                                 textAlign: "center",

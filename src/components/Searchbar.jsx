@@ -50,6 +50,7 @@ export default function Searchbar({ onSearch }) {
                         fullWidth
                         label="Search Text"
                         variant="outlined"
+                        data-testid="search-text-input"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                         onKeyDown={handleKeyDown}

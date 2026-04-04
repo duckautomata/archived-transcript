@@ -86,6 +86,7 @@ const Line = memo(
         return (
             <Box
                 id={id}
+                data-testid={`line-${id}`}
                 sx={{
                     padding: "1px 0",
                     "&:hover": {
@@ -103,6 +104,7 @@ const Line = memo(
                     <Tooltip title="Open video at timestamp">
                         <IconButton
                             size={iconSize}
+                            data-testid={`line-button-${id}`}
                             sx={{ ...iconSx, verticalAlign: "middle" }}
                             onClick={() => handleClick(start)}
                         >
@@ -323,15 +325,19 @@ export default function Transcript() {
                         >
                             {error.status === 404 ? (
                                 <>
-                                    <Info color="primary" sx={{ fontSize: 60, mb: 2 }} />
+                                    <Info color="primary" data-testid="404-transcript" sx={{ fontSize: 60, mb: 2 }} />
                                     <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
-                                        404 Not Found
+                                        Error: Not Found
                                     </Typography>
                                     <Typography color="text.secondary">{error.message}</Typography>
                                 </>
                             ) : (
                                 <>
-                                    <ErrorOutline color="error" sx={{ fontSize: 60, mb: 2 }} />
+                                    <ErrorOutline
+                                        color="error"
+                                        data-testid="500-transcript"
+                                        sx={{ fontSize: 60, mb: 2 }}
+                                    />
                                     <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
                                         Error fetching transcripts
                                     </Typography>
@@ -349,6 +355,7 @@ export default function Transcript() {
                                 color="primary"
                                 variant="h5"
                                 component="h5"
+                                data-testid="stream-title"
                                 sx={{ mb: 2, wordBreak: "break-word" }}
                             >
                                 {streamTitle}
@@ -402,6 +409,7 @@ export default function Transcript() {
                                     label="Search Transcript"
                                     variant="outlined"
                                     size="small"
+                                    data-testid="transcript-search-input"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     slotProps={{
@@ -421,6 +429,7 @@ export default function Transcript() {
                                             setSearchTerm("");
                                         }}
                                         aria-label="clear search"
+                                        data-testid="clear-search-button"
                                     >
                                         <Clear />
                                     </IconButton>

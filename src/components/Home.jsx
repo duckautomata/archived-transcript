@@ -96,6 +96,7 @@ export default function Home() {
                         >
                             <CardActionArea
                                 onClick={() => navigate("/search")}
+                                data-testid="search-btn"
                                 sx={{
                                     height: "100%",
                                     p: 4,
@@ -145,6 +146,7 @@ export default function Home() {
                         >
                             <CardActionArea
                                 onClick={() => navigate("/graph")}
+                                data-testid="graph-btn"
                                 sx={{
                                     height: "100%",
                                     p: 4,
@@ -237,9 +239,10 @@ export default function Home() {
                     Looking for active streams?
                 </Typography>
                 <Button
-                    href="/live-transcript"
+                    href="/live-transcript/"
                     variant="outlined"
                     size="large"
+                    data-testid="live-btn"
                     sx={{
                         mt: 1,
                         borderRadius: 2,

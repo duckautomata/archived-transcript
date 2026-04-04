@@ -45,17 +45,6 @@ jobs:
             - name: Lint Check
               run: npm run lint
 
-            - name: Run Tests
-              run: npm run test:ci
-
-            - name: Report Test Results
-              uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
-              if: always()
-              with:
-                  name: Vitest Results
-                  path: junit.xml
-                  reporter: jest-junit
-
             - name: Build Static Files
               run: npm run build
 

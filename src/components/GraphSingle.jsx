@@ -169,9 +169,9 @@ export default function GraphSingle() {
                         height: "50vh",
                     }}
                 >
-                    <Info color="primary" sx={{ fontSize: 60, mb: 2 }} />
+                    <Info color="primary" data-testid="graph-single-error" sx={{ fontSize: 60, mb: 2 }} />
                     <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
-                        404 Not Found
+                        Error: Not Found
                     </Typography>
                     <Typography color="text.secondary">{metaError.message}</Typography>
                     <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
@@ -180,7 +180,13 @@ export default function GraphSingle() {
                 </Box>
             ) : (
                 <Box sx={{ my: 4 }}>
-                    <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
+                    <Typography
+                        color="primary"
+                        variant="h5"
+                        component="h5"
+                        data-testid="stream-title"
+                        sx={{ mb: 2, wordBreak: "break-word" }}
+                    >
                         {metadata ? `Graph: ${metadata.streamTitle}` : "Graph Transcript"}
                     </Typography>
 
@@ -263,6 +269,7 @@ export default function GraphSingle() {
                         fullWidth
                         onClick={handleGraph}
                         disabled={isLoading}
+                        data-testid="generate-graph"
                         sx={{
                             mt: 2,
                             py: 1.5,
@@ -284,13 +291,13 @@ export default function GraphSingle() {
                         )}
 
                         {error && (
-                            <Alert severity="error" sx={{ my: 2 }}>
+                            <Alert severity="error" data-testid="input-error" sx={{ my: 2 }}>
                                 {error}
                             </Alert>
                         )}
 
                         {hasSearched && !isLoading && !error && data.length === 0 && (
-                            <Alert severity="info" sx={{ my: 2 }}>
+                            <Alert data-testid="no-data-error" severity="info" sx={{ my: 2 }}>
                                 No data found for the selected criteria.
                             </Alert>
                         )}
@@ -382,7 +389,7 @@ export default function GraphSingle() {
 
                                         <Divider sx={{ mb: 4, opacity: 0.6 }} />
 
-                                        <Box sx={{ height: 400, width: "100%" }}>
+                                        <Box data-testid="graph-chart" sx={{ height: 400, width: "100%" }}>
                                             <LineChart
                                                 dataset={processedData}
                                                 margin={{
