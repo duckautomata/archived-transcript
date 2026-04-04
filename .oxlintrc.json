@@ -7,7 +7,14 @@
     "env": {
         "builtin": true
     },
-    "ignorePatterns": ["dist/**", "archived-transcript/**"],
+    "ignorePatterns": [
+        "dist",
+        "node_modules",
+        "playwright-report",
+        "test-results",
+        "playwright.config.js",
+        ".DS_Store"
+    ],
     "overrides": [
         {
             "files": ["**/*.{js,jsx}"],

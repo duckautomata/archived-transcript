@@ -15,9 +15,16 @@ import {
     DialogContentText,
     DialogTitle,
     Stack,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Paper,
+    Chip,
+    Divider,
+    alpha,
 } from "@mui/material";
-import { Link, Description, Timeline, OpenInNew } from "@mui/icons-material";
-import { memo, useState, useCallback } from "react";
+import { Link, Description, Timeline, OpenInNew, ExpandMore } from "@mui/icons-material";
+import { memo, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toLocalDate, timeToSeconds } from "../logic/timezone";
 import { useAppStore } from "../store/store";
@@ -59,8 +66,12 @@ const ContextLine = memo(
     function ContextLine({ text, start, targetWord, margin, onActionClick }) {
         const theme = useTheme();
         const density = useAppStore((state) => state.density);
-        const regex = new RegExp(`(${targetWord})`, "gi");
-        const parts = text.split(regex);
+
+        const { parts, regex } = useMemo(() => {
+            const r = new RegExp(`(${targetWord})`, "gi");
+            return { parts: text.split(r), regex: r };
+        }, [text, targetWord]);
+
         const iconColor = theme.palette.id.main;
         const iconSize = density === "comfortable" ? "medium" : "small";
         const iconSx = density === "compact" ? { padding: 0 } : {};
@@ -226,190 +237,266 @@ export default memo(
         };
         // --- End Dialog Action Handlers ---
 
-        let accordionBgColor = "#5e5e5eff"; // Default background
-        let border = 1;
-        if (streamType === "Video") {
-            accordionBgColor = "#0f2380ff";
-            border = 1;
-        } else if (streamType === "Twitch") {
-            accordionBgColor = "#6441a5";
-            border = 1;
-        } else if (streamType === "TwitchVod") {
-            accordionBgColor = "#FF41a5";
-            border = 1;
-        } else if (streamType === "External") {
-            accordionBgColor = "#af6c6cff";
-            border = 1;
-        } else if (streamType === "Members") {
-            accordionBgColor = "#FFD700";
-            border = 2;
-        }
-
-        const summaryStyle = {
-            display: "block",
-            cursor: "pointer",
-            padding: "12px 16px",
+        const getStreamColor = (type) => {
+            switch (type) {
+                case "Video":
+                    return "#3b82f6"; // Blue
+                case "Twitch":
+                    return "#9146ff"; // Twitch Purple
+                case "TwitchVod":
+                    return "#ec4899"; // Pink
+                case "External":
+                    return "#ef4444"; // Red
+                case "Members":
+                    return "#eab308"; // Gold
+                default:
+                    return "#6b7280"; // Gray
+            }
         };
 
-        const detailsContentStyle = {
-            padding: "16px",
-            borderTop: border ? `1px solid ${accordionBgColor}` : "none",
-        };
+        const streamColor = getStreamColor(streamType);
 
-        const handleToggle = (e) => {
-            onToggle(e.currentTarget.open);
+        const handleAccordionChange = (_event, isExpandedNow) => {
+            onToggle(isExpandedNow);
         };
 
         return (
-            <Box
-                component="details"
-                onToggle={handleToggle}
-                open={isExpanded}
-                sx={{
-                    mb: marginBottom,
-                    borderRadius: 4,
-                    border: border ? `${border}px solid ${accordionBgColor}` : "none",
-                    overflow: "hidden",
-                }}
-            >
-                <summary style={summaryStyle}>
-                    <Box
+            <Box sx={{ mb: marginBottom }}>
+                <Accordion
+                    expanded={isExpanded}
+                    onChange={handleAccordionChange}
+                    elevation={0}
+                    disableGutters
+                    data-testid={isExpanded ? `expanded-result-${stream.id}` : `expandable-result-${stream.id}`}
+                    slotProps={{ transition: { unmountOnExit: true } }}
+                    sx={{
+                        borderRadius: "12px !important",
+                        border: "1px solid",
+                        borderColor: isExpanded ? streamColor : "divider",
+                        transition: "all 0.2s ease-in-out",
+                        overflow: "hidden",
+                        "&:before": { display: "none" },
+                        "&:hover": {
+                            borderColor: streamColor,
+                            boxShadow: `0 4px 12px ${alpha(streamColor, 0.1)}`,
+                        },
+                        boxShadow: isExpanded ? `0 8px 24px ${alpha(streamColor, 0.15)}` : "none",
+                    }}
+                >
+                    <AccordionSummary
+                        expandIcon={<ExpandMore />}
+                        data-testid="expand-more"
                         sx={{
-                            alignItems: "center",
-                            width: "100%",
-                            overflow: "hidden",
-                            display: "flex",
-                            flexWrap: isMobile ? "wrap" : "nowrap",
+                            px: 2,
+                            py: 1,
+                            backgroundColor: isExpanded ? alpha(streamColor, 0.04) : "transparent",
+                            "& .MuiAccordionSummary-content": {
+                                display: "flex",
+                                alignItems: "center",
+                                width: "100%",
+                                overflow: "hidden",
+                            },
                         }}
                     >
-                        <Typography
-                            variant="body2"
+                        <Box
                             sx={{
-                                flexShrink: 0,
-                                mr: 2,
-                                color: "text.secondary",
+                                display: "flex",
+                                alignItems: "center",
+                                width: "100%",
+                                overflow: "hidden",
+                                flexWrap: isMobile ? "wrap" : "nowrap",
+                                gap: isMobile ? 1 : 2,
                             }}
                         >
-                            {toLocalDate(date)}
-                        </Typography>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        color: "text.secondary",
+                                        fontWeight: 500,
+                                        width: isMobile ? "auto" : "90px",
+                                    }}
+                                >
+                                    {toLocalDate(date)}
+                                </Typography>
+                                <Chip
+                                    label={streamType}
+                                    size="small"
+                                    sx={{
+                                        backgroundColor: alpha(streamColor, 0.1),
+                                        color: streamColor,
+                                        fontWeight: "bold",
+                                        fontSize: "0.7rem",
+                                        height: 20,
+                                        borderRadius: "6px",
+                                        border: `1px solid ${alpha(streamColor, 0.2)}`,
+                                    }}
+                                />
+                            </Box>
 
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                flexShrink: 0,
-                                mr: 2,
-                                color: "text.secondary",
-                            }}
-                        >
-                            {streamer}
-                        </Typography>
-
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                flexShrink: 0,
-                                mr: 2,
-                                color: accordionBgColor,
-                                fontWeight: "bold",
-                            }}
-                        >
-                            {streamType}
-                        </Typography>
-
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                flexGrow: 1,
-                                mr: 2,
-                                mt: isMobile ? 1 : 0,
-                                width: isMobile ? "100%" : "auto",
-                                order: isMobile ? 1 : 0,
-                                noWrap: true,
-                                textOverflow: "ellipsis",
-                            }}
-                        >
-                            {title}
-                        </Typography>
-
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                width: "70px",
-                                flexShrink: 0,
-                                mr: isMobile ? 0 : 2,
-                                ml: isMobile ? "auto" : 0,
-                                color: "text.secondary",
-                                textAlign: "right",
-                            }}
-                        >
-                            {lineCount} found
-                        </Typography>
-                    </Box>
-                </summary>
-
-                {/* This div is the content that expands. Only render if it is open*/}
-                {isExpanded && (
-                    <div style={detailsContentStyle}>
-                        <Stack
-                            direction={isMobile ? "column" : "row"}
-                            spacing={2}
-                            sx={{ mb: 2, justifyContent: "center" }}
-                        >
-                            <Button
-                                variant="contained"
-                                size="small"
-                                onClick={handleTranscriptClick}
-                                startIcon={<Description />}
-                                sx={{ flexShrink: 0 }}
-                            >
-                                View Full Transcript
-                            </Button>
-                            <Button
-                                variant="contained"
-                                size="small"
-                                onClick={handleGraphClick}
-                                startIcon={<Timeline />}
-                                sx={{ flexShrink: 0 }}
-                            >
-                                Graph This Stream
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={handleOpenStreamClick}
-                                startIcon={<OpenInNew />}
-                                sx={{ flexShrink: 0 }}
-                            >
-                                Open This Stream
-                            </Button>
-                        </Stack>
-                        {limited && (
-                            <Typography>
-                                Note: results may be limited. To see all results, click on &#34;View Full
-                                Transcript&#34;
-                            </Typography>
-                        )}
-                        {streamType === "Members" && (
                             <Typography
-                                variant="h6"
-                                color="error"
-                                sx={{ mb: 2, mt: 2, fontWeight: "bold", p: 1, borderRadius: 1 }}
+                                variant="body2"
+                                sx={{
+                                    fontWeight: 600,
+                                    color: "text.primary",
+                                    flexShrink: 0,
+                                    maxWidth: isMobile ? "100%" : "120px",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                }}
                             >
-                                This is members content and should only be used for personal use, never shared.
+                                {streamer}
                             </Typography>
+
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    flexGrow: 1,
+                                    color: "text.secondary",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                    transition: "color 0.2s",
+                                    "&:hover": { color: "text.primary" },
+                                }}
+                            >
+                                {title}
+                            </Typography>
+
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    flexShrink: 0,
+                                    backgroundColor: "action.hover",
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: "4px",
+                                    color: "text.secondary",
+                                    fontWeight: "bold",
+                                    ml: isMobile ? "auto" : 0,
+                                }}
+                            >
+                                {lineCount} matches
+                            </Typography>
+                        </Box>
+                    </AccordionSummary>
+
+                    <AccordionDetails sx={{ px: 3, pb: 4, pt: 2 }}>
+                        {isExpanded && (
+                            <>
+                                <Stack
+                                    direction={isMobile ? "column" : "row"}
+                                    spacing={2}
+                                    sx={{ mb: 3, justifyContent: "flex-start" }}
+                                >
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={handleTranscriptClick}
+                                        startIcon={<Description />}
+                                        sx={{
+                                            borderRadius: "8px",
+                                            textTransform: "none",
+                                            fontWeight: "bold",
+                                            boxShadow: "none",
+                                            "&:hover": { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" },
+                                        }}
+                                    >
+                                        Full Transcript
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        color="secondary"
+                                        onClick={handleGraphClick}
+                                        startIcon={<Timeline />}
+                                        sx={{
+                                            borderRadius: "8px",
+                                            textTransform: "none",
+                                            fontWeight: "bold",
+                                            boxShadow: "none",
+                                            "&:hover": { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" },
+                                        }}
+                                    >
+                                        Graph View
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={handleOpenStreamClick}
+                                        startIcon={<OpenInNew />}
+                                        sx={{
+                                            borderRadius: "8px",
+                                            textTransform: "none",
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        Open Stream
+                                    </Button>
+                                </Stack>
+
+                                {limited && (
+                                    <Paper
+                                        variant="outlined"
+                                        sx={{
+                                            p: 1.5,
+                                            mb: 2,
+                                            backgroundColor: alpha("#f59e0b", 0.05),
+                                            borderColor: alpha("#f59e0b", 0.2),
+                                            borderRadius: "8px",
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color="warning.main"
+                                            sx={{ display: "block", fontWeight: 500 }}
+                                        >
+                                            Note: Results are limited. View Full Transcript to see all matches.
+                                        </Typography>
+                                    </Paper>
+                                )}
+
+                                {streamType === "Members" && (
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            p: 1.5,
+                                            mb: 2,
+                                            backgroundColor: alpha("#ef4444", 0.05),
+                                            border: "1px solid",
+                                            borderColor: alpha("#ef4444", 0.2),
+                                            borderRadius: "8px",
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="caption"
+                                            color="error"
+                                            sx={{ fontWeight: "bold", display: "block" }}
+                                        >
+                                            Members-only content: For personal use only. Do not share.
+                                        </Typography>
+                                    </Paper>
+                                )}
+
+                                <Divider sx={{ mb: 2, opacity: 0.6 }} />
+
+                                <Box sx={{ "& > div:not(:last-child)": { mb: 1 } }}>
+                                    {contexts.map((searchContext, index) => (
+                                        <ContextLine
+                                            key={`${id}-${searchContext.startTime}-${index}`}
+                                            start={searchContext.startTime}
+                                            text={searchContext.line}
+                                            targetWord={targetWord}
+                                            margin={0}
+                                            onActionClick={handleActionClick}
+                                        />
+                                    ))}
+                                </Box>
+                            </>
                         )}
-                        {contexts.map((searchContext, index) => (
-                            <ContextLine
-                                key={`${id}-${searchContext.startTime}-${index}`}
-                                start={searchContext.startTime}
-                                text={searchContext.line}
-                                targetWord={targetWord}
-                                margin={marginBottom}
-                                onActionClick={handleActionClick}
-                            />
-                        ))}
-                    </div>
-                )}
+                    </AccordionDetails>
+                </Accordion>
 
                 {/* Line Action Dialog */}
                 <Dialog open={dialogOpen} onClose={handleDialogClose} aria-labelledby="line-action-dialog-title">

@@ -11,8 +11,7 @@
         "format:check": "oxfmt --check .",
         "lint": "oxlint .",
         "lint:fix": "oxlint --fix .",
-        "test": "vitest",
-        "test:ci": "vitest run --reporter=junit --outputFile=junit.xml"
+        "test": "playwright test"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",
@@ -21,7 +20,6 @@
         "@mui/icons-material": "^7.3.9",
         "@mui/material": "^7.3.9",
         "@mui/x-charts": "^8.28.0",
-        "js-cookie": "^3.0.5",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "react-router-dom": "^7.13.2",
@@ -29,17 +27,14 @@
         "zustand": "^5.0.12"
     },
     "devDependencies": {
-        "@testing-library/jest-dom": "^6.9.1",
-        "@testing-library/react": "^16.3.2",
-        "@testing-library/user-event": "^14.6.1",
+        "@playwright/test": "^1.59.1",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.1",
-        "jsdom": "^29.0.1",
         "oxfmt": "^0.42.0",
         "oxlint": "^1.57.0",
+        "playwright": "^1.59.1",
         "vite": "^8.0.3",
-        "vitest": "^4.1.2",
         "wrangler": "^4.78.0"
     }
 }

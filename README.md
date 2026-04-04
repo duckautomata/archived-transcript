@@ -13,10 +13,10 @@ _Development_
 
 - **[Tech Used](#tech-used)**
 - **[Running Locally](#running-locally)**
+- **[Testing](#testing)**
 - **[Contributing](#contributing)**
 - **[Contributing Ideas](#contributing-ideas)**
 - **[Building a Release](#building-a-new-release)**
-- **[Release Process](#release-process)**
 
 ## System
 
@@ -51,12 +51,25 @@ A guide on how to use the website can be found by clicking the `Help` question m
 
 ### Running Locally
 
-1. Have Node 20 or later installed
+1. Have Node 22 or later installed
 2. Clone the repo locally
 3. Run `npm install` to install dependencies
 4. Run `npm run dev` and open the site it gives you. Or press `o` and enter to open the site.
 
 Every time you save, Vite will automatically refresh the cache and the site should refresh with the new changes.
+
+### Testing
+
+This project uses playwright tests only, no unit tests.
+
+Before running any playwright tests, you need to build the project. The tests runs against the preview server since it's significantly faster than running the dev server.
+
+#### Running Playwright Tests
+
+```bash
+npm run build
+npm run test
+```
 
 ### Contributing
 

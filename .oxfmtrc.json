@@ -14,10 +14,12 @@
         "dist",
         "assets",
         "public",
-        "archived-transcript",
         ".yarn",
         ".husky",
         "package-lock.json",
-        ".yarnrc.yml"
+        ".yarnrc.yml",
+        "node_modules",
+        "playwright-report",
+        "test-results"
     ]
 }

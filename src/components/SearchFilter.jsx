@@ -57,6 +57,7 @@ export default function SearchFilter() {
                             <Select
                                 labelId="streamer-select-label"
                                 label="Streamer"
+                                data-testid="streamer-select"
                                 value={streamer}
                                 onChange={(e) => setStreamer(e.target.value)}
                             >
@@ -76,6 +77,7 @@ export default function SearchFilter() {
                             <InputLabel id="type-select-label">Type</InputLabel>
                             <Select
                                 labelId="type-select-label"
+                                data-testid="type-select"
                                 multiple
                                 value={streamType}
                                 onChange={handleTypeChange}
@@ -104,6 +106,7 @@ export default function SearchFilter() {
                             fullWidth
                             label="From"
                             type="date"
+                            data-testid="start-date"
                             value={fromDate}
                             onChange={(e) => setFromDate(e.target.value)}
                             InputLabelProps={{ shrink: true }}
@@ -116,6 +119,7 @@ export default function SearchFilter() {
                             fullWidth
                             label="To"
                             type="date"
+                            data-testid="end-date"
                             value={toDate}
                             onChange={(e) => setToDate(e.target.value)}
                             InputLabelProps={{ shrink: true }}
@@ -128,6 +132,7 @@ export default function SearchFilter() {
                             fullWidth
                             label="Stream Title"
                             variant="outlined"
+                            data-testid="stream-title"
                             value={streamTitle}
                             onChange={(e) => setStreamTitle(e.target.value)}
                         />
@@ -146,6 +151,7 @@ export default function SearchFilter() {
                                 control={
                                     <Switch
                                         checked={matchWholeWord}
+                                        data-testid="match-whole-word-switch"
                                         onChange={(e) => setMatchWholeWord(e.target.checked)}
                                     />
                                 }
