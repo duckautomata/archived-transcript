@@ -49,7 +49,7 @@ export default function SearchFilter() {
         <>
             Filter
             <Box sx={{ mb: 4, p: 2 }}>
-                <Grid container spacing={2} alignItems="center">
+                <Grid container spacing={2} sx={{ alignItems: "center" }}>
                     {/* Streamer Dropdown */}
                     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                         <FormControl fullWidth sx={{ minWidth: 80 }}>
@@ -109,7 +109,7 @@ export default function SearchFilter() {
                             data-testid="start-date"
                             value={fromDate}
                             onChange={(e) => setFromDate(e.target.value)}
-                            InputLabelProps={{ shrink: true }}
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
                     </Grid>
 
@@ -122,7 +122,7 @@ export default function SearchFilter() {
                             data-testid="end-date"
                             value={toDate}
                             onChange={(e) => setToDate(e.target.value)}
-                            InputLabelProps={{ shrink: true }}
+                            slotProps={{ inputLabel: { shrink: true } }}
                         />
                     </Grid>
 

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./custom-test";
 import { takeScreenshots } from "./helper";
 
 test.describe("Graph Single Page", () => {

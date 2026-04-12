@@ -18,6 +18,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
 import Searchbar from "./Searchbar";
+import StatCard from "./StatCard";
 import { LineChart } from "@mui/x-charts";
 import { useAppStore } from "../store/store";
 import { getGraphById, getStreamMetadata } from "../logic/api";
@@ -173,7 +174,7 @@ export default function GraphSingle() {
                     <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
                         Error: Not Found
                     </Typography>
-                    <Typography color="text.secondary">{metaError.message}</Typography>
+                    <Typography sx={{ color: "text.secondary" }}>{metaError.message}</Typography>
                     <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
                         Go Back Home
                     </Button>
@@ -313,75 +314,26 @@ export default function GraphSingle() {
                                             borderRadius: isMobile ? "8px" : "16px",
                                             border: "1px solid",
                                             borderColor: "divider",
-                                            background: (theme) =>
-                                                `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.5)})`,
-                                            backdropFilter: "blur(8px)",
                                         }}
                                     >
                                         {stats && (
                                             <Box sx={{ mb: 4 }}>
                                                 <Grid container spacing={isMobile ? 1.5 : 3}>
                                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                                        <Paper
-                                                            variant="outlined"
-                                                            sx={{
-                                                                p: 2,
-                                                                borderRadius: "12px",
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                gap: 2,
-                                                            }}
-                                                        >
-                                                            <Box
-                                                                sx={{
-                                                                    p: 1,
-                                                                    borderRadius: "8px",
-                                                                    bgcolor: alpha("#10b981", 0.1),
-                                                                    color: "#10b981",
-                                                                }}
-                                                            >
-                                                                <BarChart />
-                                                            </Box>
-                                                            <Box>
-                                                                <Typography variant="caption" color="text.secondary">
-                                                                    Full Stream Matches
-                                                                </Typography>
-                                                                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                                                    {stats.total.toLocaleString()}
-                                                                </Typography>
-                                                            </Box>
-                                                        </Paper>
+                                                        <StatCard
+                                                            title="FULL STREAM MATCHES"
+                                                            value={stats.total.toLocaleString()}
+                                                            icon={<BarChart />}
+                                                            color="#10b981"
+                                                        />
                                                     </Grid>
                                                     <Grid size={{ xs: 12, sm: 6 }}>
-                                                        <Paper
-                                                            variant="outlined"
-                                                            sx={{
-                                                                p: 2,
-                                                                borderRadius: "12px",
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                gap: 2,
-                                                            }}
-                                                        >
-                                                            <Box
-                                                                sx={{
-                                                                    p: 1,
-                                                                    borderRadius: "8px",
-                                                                    bgcolor: alpha("#6366f1", 0.1),
-                                                                    color: "#6366f1",
-                                                                }}
-                                                            >
-                                                                <History />
-                                                            </Box>
-                                                            <Box>
-                                                                <Typography variant="caption" color="text.secondary">
-                                                                    Recorded Points
-                                                                </Typography>
-                                                                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                                                    {data.length}
-                                                                </Typography>
-                                                            </Box>
-                                                        </Paper>
+                                                        <StatCard
+                                                            title="RECORDED POINTS"
+                                                            value={data.length}
+                                                            icon={<History />}
+                                                            color="#6366f1"
+                                                        />
                                                     </Grid>
                                                 </Grid>
                                             </Box>

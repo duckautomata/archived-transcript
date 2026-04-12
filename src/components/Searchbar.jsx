@@ -43,7 +43,7 @@ export default function Searchbar({ onSearch }) {
 
     return (
         <Box sx={{ mb: 4, p: 2 }}>
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} sx={{ alignItems: "center" }}>
                 <Grid size={12}>
                     <TextField
                         inputRef={searchInputRef}

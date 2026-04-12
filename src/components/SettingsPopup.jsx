@@ -13,7 +13,7 @@ import {
     Typography,
     CircularProgress,
 } from "@mui/material";
-import { Delete, CheckCircle, ErrorOutline } from "@mui/icons-material";
+import { Delete, CheckCircle, ErrorOutlined } from "@mui/icons-material";
 import { useAppStore } from "../store/store";
 import { useState, useEffect } from "react";
 import { verifyMembershipKey } from "../logic/api";
@@ -115,11 +115,10 @@ const SettingsPopup = ({ open, setOpen }) => {
                             }}
                         >
                             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                                {isExpired ? <ErrorOutline color="error" /> : <CheckCircle color="success" />}
+                                {isExpired ? <ErrorOutlined color="error" /> : <CheckCircle color="success" />}
                                 <Typography
                                     variant="subtitle1"
-                                    fontWeight="bold"
-                                    color={isExpired ? "error" : "inherit"}
+                                    sx={{ fontWeight: "bold", color: isExpired ? "error" : "inherit" }}
                                 >
                                     {isExpired ? "Expired Key" : "Verified"}
                                 </Typography>
@@ -127,7 +126,7 @@ const SettingsPopup = ({ open, setOpen }) => {
                             <Typography variant="body2">
                                 <b>Channel:</b> {membershipInfo.channel}
                             </Typography>
-                            <Typography variant="body2" color={isExpired ? "error" : "inherit"}>
+                            <Typography variant="body2" sx={{ color: isExpired ? "error" : "inherit" }}>
                                 <b>{isExpired ? "Expired" : "Expires"}</b>:{" "}
                                 {formatExpirationDate(membershipInfo.expiresAt)}
                             </Typography>

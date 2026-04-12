@@ -12,7 +12,6 @@ import {
     Divider,
     Chip,
     Stack,
-    alpha,
     Fade,
     Grid,
     useMediaQuery,
@@ -20,6 +19,7 @@ import {
 import { useShallow } from "zustand/react/shallow";
 import SearchFilter from "./SearchFilter";
 import Searchbar from "./Searchbar";
+import StatCard from "./StatCard";
 import { LineChart } from "@mui/x-charts";
 import { useAppStore } from "../store/store";
 import { getGraph } from "../logic/api";
@@ -184,16 +184,11 @@ export default function Graph() {
                                         borderRadius: isMobile ? "8px" : "16px",
                                         border: "1px solid",
                                         borderColor: "divider",
-                                        background: (theme) =>
-                                            `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)}, ${alpha(theme.palette.background.paper, 0.5)})`,
-                                        backdropFilter: "blur(8px)",
                                     }}
                                 >
                                     <Stack
                                         direction="row"
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                        sx={{ mb: 3 }}
+                                        sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}
                                     >
                                         <FormControlLabel
                                             control={
@@ -224,99 +219,30 @@ export default function Graph() {
                                         <Box sx={{ mb: 4 }}>
                                             <Grid container spacing={isMobile ? 1.5 : 3}>
                                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                                    <Paper
-                                                        variant="outlined"
-                                                        sx={{
-                                                            p: 2,
-                                                            borderRadius: "12px",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            gap: 2,
-                                                        }}
-                                                    >
-                                                        <Box
-                                                            sx={{
-                                                                p: 1,
-                                                                borderRadius: "8px",
-                                                                bgcolor: alpha("#3b82f6", 0.1),
-                                                                color: "#3b82f6",
-                                                            }}
-                                                        >
-                                                            <BarChart />
-                                                        </Box>
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                Total Matches
-                                                            </Typography>
-                                                            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                                                {stats.total.toLocaleString()}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Paper>
+                                                    <StatCard
+                                                        title="TOTAL MATCHES"
+                                                        value={stats.total.toLocaleString()}
+                                                        icon={<BarChart />}
+                                                        color="#3b82f6"
+                                                    />
                                                 </Grid>
                                                 {!isCumulative && (
                                                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                                        <Paper
-                                                            variant="outlined"
-                                                            sx={{
-                                                                p: 2,
-                                                                borderRadius: "12px",
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                gap: 2,
-                                                            }}
-                                                        >
-                                                            <Box
-                                                                sx={{
-                                                                    p: 1,
-                                                                    borderRadius: "8px",
-                                                                    bgcolor: alpha("#ec4899", 0.1),
-                                                                    color: "#ec4899",
-                                                                }}
-                                                            >
-                                                                <TrendingUp />
-                                                            </Box>
-                                                            <Box>
-                                                                <Typography variant="caption" color="text.secondary">
-                                                                    Peak Daily Hits
-                                                                </Typography>
-                                                                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                                                    {stats.max.toLocaleString()}
-                                                                </Typography>
-                                                            </Box>
-                                                        </Paper>
+                                                        <StatCard
+                                                            title="PEAK DAILY HITS"
+                                                            value={stats.max.toLocaleString()}
+                                                            icon={<TrendingUp />}
+                                                            color="#ec4899"
+                                                        />
                                                     </Grid>
                                                 )}
                                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                                    <Paper
-                                                        variant="outlined"
-                                                        sx={{
-                                                            p: 2,
-                                                            borderRadius: "12px",
-                                                            display: "flex",
-                                                            alignItems: "center",
-                                                            gap: 2,
-                                                        }}
-                                                    >
-                                                        <Box
-                                                            sx={{
-                                                                p: 1,
-                                                                borderRadius: "8px",
-                                                                bgcolor: alpha("#8b5cf6", 0.1),
-                                                                color: "#8b5cf6",
-                                                            }}
-                                                        >
-                                                            <History />
-                                                        </Box>
-                                                        <Box>
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                Data Points
-                                                            </Typography>
-                                                            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                                                {data.length}
-                                                            </Typography>
-                                                        </Box>
-                                                    </Paper>
+                                                    <StatCard
+                                                        title="DATA POINTS"
+                                                        value={data.length}
+                                                        icon={<History />}
+                                                        color="#8b5cf6"
+                                                    />
                                                 </Grid>
                                             </Grid>
                                         </Box>

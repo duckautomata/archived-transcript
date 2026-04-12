@@ -47,7 +47,7 @@ A guide on how to use the website can be found by clicking the `Help` question m
 - Node 22
 - Vite to run locally
 - React19
-- MUI 7
+- MUI 9
 
 ### Running Locally
 
@@ -69,6 +69,18 @@ Before running any playwright tests, you need to build the project. The tests ru
 ```bash
 npm run build
 npm run test
+```
+
+#### Dev Playwright Tests
+
+This will use the dev server instead of the preview server.
+
+This is useful for catching rendering errors that are not logged in the preview server.
+
+However, it is a lot slower than the preview server. So it should only be ran locally.
+
+```bash
+npm run test:dev
 ```
 
 ### Contributing

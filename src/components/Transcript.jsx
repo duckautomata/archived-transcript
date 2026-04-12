@@ -1,4 +1,4 @@
-import { Clear, ErrorOutline, Info, Link, Search } from "@mui/icons-material";
+import { Clear, ErrorOutlined, Info, Link, Search } from "@mui/icons-material";
 import {
     Typography,
     IconButton,
@@ -97,9 +97,7 @@ const Line = memo(
                 <Typography
                     color="secondary"
                     aria-live="assertive"
-                    whiteSpace="pre-wrap"
-                    align="left"
-                    style={{ wordBreak: "break-word" }}
+                    style={{ wordBreak: "break-word", textAlign: "left", whiteSpace: "pre-wrap" }}
                 >
                     <Tooltip title="Open video at timestamp">
                         <IconButton
@@ -329,11 +327,11 @@ export default function Transcript() {
                                     <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
                                         Error: Not Found
                                     </Typography>
-                                    <Typography color="text.secondary">{error.message}</Typography>
+                                    <Typography sx={{ color: "text.secondary" }}>{error.message}</Typography>
                                 </>
                             ) : (
                                 <>
-                                    <ErrorOutline
+                                    <ErrorOutlined
                                         color="error"
                                         data-testid="500-transcript"
                                         sx={{ fontSize: 60, mb: 2 }}
@@ -341,7 +339,7 @@ export default function Transcript() {
                                     <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
                                         Error fetching transcripts
                                     </Typography>
-                                    <Typography color="text.secondary">{error.message}</Typography>
+                                    <Typography sx={{ color: "text.secondary" }}>{error.message}</Typography>
                                 </>
                             )}
                             <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
@@ -386,7 +384,7 @@ export default function Transcript() {
                                             gap: 1,
                                         }}
                                     >
-                                        <ErrorOutline /> This is members content and should only be used for personal
+                                        <ErrorOutlined /> This is members content and should only be used for personal
                                         use, never shared.
                                     </Typography>
                                 </Paper>

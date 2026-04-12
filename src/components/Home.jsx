@@ -63,23 +63,25 @@ export default function Home() {
                     variant={isMobile ? "h3" : "h2"}
                     component="h1"
                     color="primary"
-                    fontWeight="bold"
                     sx={{
+                        fontWeight: "bold",
                         background: (theme) =>
                             `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.alt})`,
                         backgroundClip: "text",
+                        WebkitBackgroundClip: "text",
                         textFillColor: "transparent",
+                        WebkitTextFillColor: "transparent",
                         mb: 2,
                     }}
                 >
                     Archived Transcripts
                 </Typography>
-                <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: "auto" }}>
+                <Typography variant="h6" sx={{ color: "text.secondary", maxWidth: 600, mx: "auto" }}>
                     Search past streams or view specific transcripts.
                 </Typography>
             </Box>
 
-            <Grid container spacing={4} justifyContent="center" alignItems="stretch" sx={{ mb: 6, maxWidth: 800 }}>
+            <Grid container spacing={4} sx={{ justifyContent: "center", alignItems: "stretch", mb: 6, maxWidth: 800 }}>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={500}>
                         <Card
@@ -119,10 +121,10 @@ export default function Home() {
                                     <ManageSearch fontSize="large" sx={{ fontSize: 40 }} />
                                 </Box>
                                 <CardContent sx={{ p: 0, textAlign: "center" }}>
-                                    <Typography gutterBottom variant="h5" component="div" fontWeight="medium">
+                                    <Typography variant="h5" component="div" sx={{ fontWeight: "medium", mb: 1 }}>
                                         Search
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                         Search through all archived transcripts.
                                     </Typography>
                                 </CardContent>
@@ -169,10 +171,10 @@ export default function Home() {
                                     <Assessment fontSize="large" sx={{ fontSize: 40 }} />
                                 </Box>
                                 <CardContent sx={{ p: 0, textAlign: "center" }}>
-                                    <Typography gutterBottom variant="h5" component="div" fontWeight="medium">
+                                    <Typography variant="h5" component="div" sx={{ fontWeight: "medium", mb: 1 }}>
                                         Graph
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
                                         View word count graphs for streams.
                                     </Typography>
                                 </CardContent>
@@ -186,7 +188,7 @@ export default function Home() {
             <Fade in={true} timeout={900}>
                 <Card sx={{ p: 4, borderRadius: 4, maxWidth: 600, width: "100%" }} elevation={2}>
                     <Stack spacing={3}>
-                        <Typography variant="h6" fontWeight="medium" align="center" gutterBottom>
+                        <Typography variant="h6" sx={{ fontWeight: "medium", textAlign: "center", mb: 1 }}>
                             Direct Access
                         </Typography>
 
@@ -235,7 +237,7 @@ export default function Home() {
             </Fade>
 
             <Box sx={{ mt: 6, textAlign: "center" }}>
-                <Typography variant="body1" color="text.secondary" gutterBottom>
+                <Typography variant="body1" sx={{ color: "text.secondary", mb: 1 }}>
                     Looking for active streams?
                 </Typography>
                 <Button

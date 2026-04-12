@@ -20,8 +20,8 @@ export default function Maintenance() {
             <Typography variant="h5" component="h2" sx={{ mb: 1 }}>
                 Archived Transcript is currently down for maintenance.
             </Typography>
-            <Typography color="text.secondary">{window.maintenanceText1}</Typography>
-            <Typography color="text.secondary">{window.maintenanceText2}</Typography>
+            <Typography sx={{ color: "text.secondary" }}>{window.maintenanceText1}</Typography>
+            <Typography sx={{ color: "text.secondary" }}>{window.maintenanceText2}</Typography>
         </Box>
     );
 }
