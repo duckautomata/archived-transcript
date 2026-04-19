@@ -12,6 +12,10 @@ import Graph from "./components/Graph";
 import Transcript from "./components/Transcript";
 import GraphSingle from "./components/GraphSingle";
 import UpdateAlert from "./components/UpdateAlert";
+import EnvironmentBadge from "./components/EnvironmentBadge";
+import SettingsPopup from "./components/SettingsPopup";
+import HelpPopup from "./components/HelpPopup";
+import InfoPopup from "./components/InfoPopup";
 
 function App() {
     const theme = useAppStore((state) => state.theme);
@@ -27,6 +31,7 @@ function App() {
         <ThemeProvider theme={colorTheme}>
             <CssBaseline />
             <UpdateAlert />
+            <EnvironmentBadge />
             {window.maintenance ? (
                 <Routes>
                     <Route path={"*"} element={<Maintenance />} />
@@ -44,6 +49,9 @@ function App() {
                     </Sidebar>
                 </>
             )}
+            <SettingsPopup />
+            <HelpPopup />
+            <InfoPopup />
         </ThemeProvider>
     );
 }

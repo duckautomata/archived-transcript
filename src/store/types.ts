@@ -14,6 +14,15 @@ export interface TranscriptLine {
 
 // Slice Interfaces
 
+export interface OpenSlice {
+    infoOpen: boolean;
+    helpOpen: boolean;
+    settingsOpen: boolean;
+    setInfoOpen: (isOpen: boolean) => void;
+    setHelpOpen: (isOpen: boolean) => void;
+    setSettingsOpen: (isOpen: boolean) => void;
+}
+
 export interface QuerySlice {
     searchText: string;
     setSearchText: (text: string) => void;
@@ -57,7 +66,7 @@ export interface SettingsSlice {
 }
 
 // The combined store type
-export type AppStore = QuerySlice & SettingsSlice;
+export type AppStore = QuerySlice & OpenSlice & SettingsSlice;
 
 // Helper type for creating slices
 export type AppSliceCreator<T> = StateCreator<AppStore, [], [], T>;

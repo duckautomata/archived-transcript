@@ -13,3 +13,14 @@ zone_name = "duck-automata.com"
 [[routes]]
 pattern = "www.duck-automata.com/archived-transcript/*"
 zone_name = "duck-automata.com"
+
+[env.dev]
+name = "archived-transcript-app-dev"
+
+[[env.dev.routes]]
+pattern = "dev.duck-automata.com/archived-transcript"
+zone_name = "duck-automata.com"
+
+[[env.dev.routes]]
+pattern = "dev.duck-automata.com/archived-transcript/*"
+zone_name = "duck-automata.com"

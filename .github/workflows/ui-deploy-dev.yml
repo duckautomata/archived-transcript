@@ -1,30 +1,20 @@
-name: UI Deploy
+name: UI Deploy (Dev)
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 on:
-    push:
-        branches: ["master"]
-        paths:
-            - "src/**"
-            - "public/**"
-            - "index.html"
-            - "package.json"
-            - "package-lock.json"
-            - "vite.config.*"
-            - "wrangler.toml"
-            - ".github/workflows/ui-deploy.yml"
+    workflow_dispatch:
 
 jobs:
-    deploy:
+    deploy-dev:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
             contents: read
             checks: write
-        environment: production
+        environment: develop
 
         steps:
             - name: Checkout Code
@@ -47,17 +37,11 @@ jobs:
 
             - name: Build Static Files
               env:
-                  VITE_PAGE_TITLE: "Archived Transcript"
-                  VITE_SUB_DOMAIN: "www"
-                  VITE_API_URL: "https://api.duck-automata.com/archive"
-                  VITE_ENVIRONMENT: "prod"
+                  VITE_PAGE_TITLE: "Archived Transcript Dev"
+                  VITE_SUB_DOMAIN: "dev"
+                  VITE_API_URL: "https://api.duck-automata.com/dev-archive"
+                  VITE_ENVIRONMENT: "dev"
               run: npm run build
-
-            - name: Deploy to Cloudflare
-              env:
-                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-              run: npx wrangler deploy
 
             - name: Deploy to Cloudflare (Dev)
               env:

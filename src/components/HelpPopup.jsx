@@ -68,11 +68,10 @@ const HelpImage = ({ src, width = "100%", alt = "" }) => (
 
 /**
  * A dialog displaying help information and guides for the application.
- * @param {object} props
- * @param {boolean} props.open - Whether the dialog is open.
- * @param {function(boolean): void} props.setOpen - Callback to change the open state.
  */
-export default function HelpPopup({ open, setOpen }) {
+export default function HelpPopup() {
+    const helpOpen = useAppStore((state) => state.helpOpen);
+    const setHelpOpen = useAppStore((state) => state.setHelpOpen);
     const theme = useAppStore((state) => state.theme);
     const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
     const isDarkMode = theme === "dark" || (theme === "system" && prefersDarkMode);
@@ -87,13 +86,13 @@ export default function HelpPopup({ open, setOpen }) {
     };
 
     const handleClose = () => {
-        setOpen(false);
+        setHelpOpen(false);
     };
 
     return (
         <div>
             <Dialog
-                open={open}
+                open={helpOpen}
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"

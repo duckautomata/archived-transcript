@@ -9,9 +9,7 @@ import ListItemText from "@mui/material/ListItemText";
 import MenuIcon from "@mui/icons-material/Menu";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AssessmentIcon from "@mui/icons-material/Assessment";
-import HelpPopup from "./HelpPopup";
-import SettingsPopup from "./SettingsPopup";
-import { GitHub, Help, Home, ManageSearch } from "@mui/icons-material";
+import { GitHub, Help, Home, ManageSearch, InfoOutlined } from "@mui/icons-material";
 import { Tooltip, useMediaQuery } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/store";
@@ -26,10 +24,11 @@ export default function Sidebar({ children }) {
 
     const sidebarOpen = useAppStore((state) => state.sidebarOpen);
     const setSidebarOpen = useAppStore((state) => state.setSidebarOpen);
+    const setInfoOpen = useAppStore((state) => state.setInfoOpen);
+    const setHelpOpen = useAppStore((state) => state.setHelpOpen);
+    const setSettingsOpen = useAppStore((state) => state.setSettingsOpen);
 
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [helpOpen, setHelpOpen] = useState(false);
-    const [settingsOpen, setSettingsOpen] = useState(false);
     const isMobile = useMediaQuery("(max-width:768px)");
     const drawerWidth = isMobile ? 180 : 200;
     const drawerWidthCollapsed = 60;
@@ -91,7 +90,7 @@ export default function Sidebar({ children }) {
                     },
                 }}
             >
-                <Box sx={{ overflow: "hidden" }}>
+                <Box sx={{ overflowY: "auto", overflowX: "hidden" }}>
                     <List>
                         {/* Collapse/Expand Button */}
                         <ListItem disablePadding>
@@ -196,6 +195,24 @@ export default function Sidebar({ children }) {
                                 </ListItemButton>
                             </Tooltip>
                         </ListItem>
+                        {/* Info */}
+                        <ListItem disablePadding>
+                            <Tooltip title={!isMobile && !sidebarOpen ? "System Info" : ""} placement="right">
+                                <ListItemButton
+                                    onClick={() => setInfoOpen(true)}
+                                    sx={{
+                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                        px: 2.5,
+                                        overflow: "hidden",
+                                    }}
+                                >
+                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                                        <InfoOutlined />
+                                    </ListItemIcon>
+                                    {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="System Info" />}
+                                </ListItemButton>
+                            </Tooltip>
+                        </ListItem>
                         {/* Settings */}
                         <ListItem disablePadding>
                             <Tooltip title={!isMobile && !sidebarOpen ? "Settings" : ""} placement="right">
@@ -215,8 +232,6 @@ export default function Sidebar({ children }) {
                             </Tooltip>
                         </ListItem>
                     </List>
-                    <SettingsPopup open={settingsOpen} setOpen={setSettingsOpen} />
-                    <HelpPopup open={helpOpen} setOpen={setHelpOpen} />
                 </Box>
             </Drawer>
             <Box

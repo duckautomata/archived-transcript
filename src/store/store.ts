@@ -4,10 +4,12 @@ import { persist } from "zustand/middleware";
 import { AppStore } from "./types";
 import { createQuerySlice } from "./querySlice";
 import { createSettingsSlice } from "./settingsSlice";
+import { createOpenSlice } from "./openSlice";
 
 export const useAppStore = create<AppStore>()(
     persist(
         (set, get, api) => ({
+            ...createOpenSlice(set, get, api),
             ...createQuerySlice(set, get, api),
             ...createSettingsSlice(set, get, api),
         }),

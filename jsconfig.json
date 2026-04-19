@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "jsx": "react-jsx",
+        "allowJs": true,
+        "checkJs": false
+    },
+    "include": ["src/**/*", "tests/**/*", "*.js"],
+    "exclude": ["node_modules", "dist", "playwright-report", "test-results", ".wrangler"]
+}
