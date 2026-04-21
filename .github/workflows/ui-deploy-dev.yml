@@ -36,12 +36,7 @@ jobs:
               run: npm run lint
 
             - name: Build Static Files
-              env:
-                  VITE_PAGE_TITLE: "Archived Transcript Dev"
-                  VITE_SUB_DOMAIN: "dev"
-                  VITE_API_URL: "https://api.duck-automata.com/dev-archive"
-                  VITE_ENVIRONMENT: "dev"
-              run: npm run build
+              run: npm run build -- --mode dev
 
             - name: Deploy to Cloudflare (Dev)
               env:

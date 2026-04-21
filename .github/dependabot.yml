@@ -1,29 +1,23 @@
 version: 2
+multi-ecosystem-groups:
+    all-updates:
+        schedule:
+            interval: "weekly"
+            day: "monday"
+        labels:
+            - "dependabot"
+        commit-message:
+            prefix: "chore"
+
 updates:
     - package-ecosystem: "npm"
       directory: "/"
-      schedule:
-          interval: "weekly"
-          day: "monday"
-      commit-message:
-          prefix: "chore"
-      labels:
-          - "dependabot"
-      groups:
-          npm-deps:
-              patterns:
-                  - "*"
+      multi-ecosystem-group: "all-updates"
+      patterns:
+          - "*"
 
     - package-ecosystem: "github-actions"
       directory: "/"
-      schedule:
-          interval: "weekly"
-          day: "monday"
-      commit-message:
-          prefix: "chore"
-      labels:
-          - "dependabot"
-      groups:
-          actions-deps:
-              patterns:
-                  - "*"
+      multi-ecosystem-group: "all-updates"
+      patterns:
+          - "*"
