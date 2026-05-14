@@ -58,6 +58,14 @@ A guide on how to use the website can be found by clicking the `Help` question m
 
 Every time you save, Vite will automatically refresh the cache and the site should refresh with the new changes.
 
+#### Update Command
+
+```bash
+npx npm-check-updates -u --cooldown 7; npm install; npm audit; npm audit signatures --min-release-age=0
+```
+
+if any of the install/update commands are failing, you can add `--min-release-age=0` to it to bypass the minimum release age restriction.
+
 ### Testing
 
 This project uses playwright tests only, no unit tests.

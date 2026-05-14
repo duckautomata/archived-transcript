@@ -1,23 +1,50 @@
 version: 2
-multi-ecosystem-groups:
-    all-updates:
-        schedule:
-            interval: "weekly"
-            day: "monday"
-        labels:
-            - "dependabot"
-        commit-message:
-            prefix: "chore"
-
 updates:
     - package-ecosystem: "npm"
       directory: "/"
-      multi-ecosystem-group: "all-updates"
-      patterns:
-          - "*"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+      labels:
+          - "dependabot"
+      commit-message:
+          prefix: "chore"
+      open-pull-requests-limit: 10
+      cooldown:
+          default-days: 7
+          semver-major-days: 14
+          semver-minor-days: 7
+          semver-patch-days: 7
+          include:
+              - "*"
+      groups:
+          npm-all:
+              patterns:
+                  - "*"
+              update-types:
+                  - "major"
+                  - "minor"
+                  - "patch"
 
     - package-ecosystem: "github-actions"
       directory: "/"
-      multi-ecosystem-group: "all-updates"
-      patterns:
-          - "*"
+      schedule:
+          interval: "weekly"
+          day: "wednesday"
+      labels:
+          - "dependabot"
+      commit-message:
+          prefix: "chore"
+      open-pull-requests-limit: 5
+      cooldown:
+          default-days: 7
+          include:
+              - "*"
+      groups:
+          actions-all:
+              patterns:
+                  - "*"
+              update-types:
+                  - "major"
+                  - "minor"
+                  - "patch"

@@ -18,24 +18,24 @@
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
         "@fontsource/roboto": "^5.2.10",
-        "@mui/icons-material": "^9.0.0",
-        "@mui/material": "^9.0.0",
+        "@mui/icons-material": "^9.0.1",
+        "@mui/material": "^9.0.1",
         "@mui/x-charts": "^9.0.4",
-        "react": "^19.2.5",
-        "react-dom": "^19.2.5",
-        "react-router-dom": "^7.14.2",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+        "react-router-dom": "^7.15.0",
         "react-virtuoso": "^4.18.6",
-        "zustand": "^5.0.12"
+        "zustand": "^5.0.13"
     },
     "devDependencies": {
         "@playwright/test": "^1.59.1",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.1",
-        "oxfmt": "^0.47.0",
-        "oxlint": "^1.62.0",
+        "oxfmt": "^0.48.0",
+        "oxlint": "^1.63.0",
         "playwright": "^1.59.1",
-        "vite": "^8.0.10",
-        "wrangler": "^4.87.0"
+        "vite": "^8.0.11",
+        "wrangler": "^4.90.0"
     }
 }
