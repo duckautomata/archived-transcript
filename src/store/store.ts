@@ -5,6 +5,7 @@ import { AppStore } from "./types";
 import { createQuerySlice } from "./querySlice";
 import { createSettingsSlice } from "./settingsSlice";
 import { createOpenSlice } from "./openSlice";
+import { createToastSlice } from "./toastSlice";
 
 export const useAppStore = create<AppStore>()(
     persist(
@@ -12,6 +13,7 @@ export const useAppStore = create<AppStore>()(
             ...createOpenSlice(set, get, api),
             ...createQuerySlice(set, get, api),
             ...createSettingsSlice(set, get, api),
+            ...createToastSlice(set, get, api),
         }),
         {
             name: "live-transcript-settings", // The key in localStorage

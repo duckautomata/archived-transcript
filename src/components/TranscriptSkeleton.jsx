@@ -16,6 +16,13 @@ export default function TranscriptSkeleton() {
                     Loading Transcript...
                 </Typography>
             </Box>
+            {/* Metadata + action buttons card */}
+            <Skeleton
+                variant="rounded"
+                width="100%"
+                height={isMobile ? 110 : 90}
+                sx={{ mb: 2, borderRadius: "12px" }}
+            />
             <div className="transcript">
                 <Box
                     sx={{

@@ -1,18 +1,26 @@
-import { QuerySlice, AppSliceCreator } from "./types";
+import { QueryFields, QuerySlice, AppSliceCreator } from "./types";
+
+/** Default (empty) values for every query field. */
+export const defaultQuery: Readonly<QueryFields> = Object.freeze({
+    searchText: "",
+    streamer: "",
+    streamType: [],
+    fromDate: "",
+    toDate: "",
+    streamTitle: "",
+    matchWholeWord: false,
+});
 
 export const createQuerySlice: AppSliceCreator<QuerySlice> = (set) => ({
-    searchText: "",
-    setSearchText: (text) => set({ searchText: text }),
-    streamer: "",
-    setStreamer: (s) => set({ streamer: s }),
+    ...defaultQuery,
     streamType: [],
+    setSearchText: (text) => set({ searchText: text }),
+    setStreamer: (s) => set({ streamer: s }),
     setStreamType: (s) => set({ streamType: s }),
-    fromDate: "",
     setFromDate: (date) => set({ fromDate: date }),
-    toDate: "",
     setToDate: (date) => set({ toDate: date }),
-    streamTitle: "",
     setStreamTitle: (title) => set({ streamTitle: title }),
-    matchWholeWord: false,
     setMatchWholeWord: (match) => set({ matchWholeWord: match }),
+    resetQuery: () => set({ ...defaultQuery, streamType: [] }),
+    hydrateQuery: (fields) => set({ ...fields }),
 });

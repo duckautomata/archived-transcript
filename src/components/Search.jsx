@@ -1,78 +1,103 @@
 // On search, will show all transcripts as an expandable list
 
-import { Typography, Box, Container, Button, CircularProgress, Alert } from "@mui/material";
+import { Alert, Box, CircularProgress, Container, Paper, Typography } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
+import { useCallback, useRef, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 import ExpandableResult from "./ExpandableResult";
 import Searchbar from "./Searchbar";
 import SearchFilter from "./SearchFilter";
-import { useCallback, useState } from "react";
+import QueryActions from "./QueryActions";
+import ScrollToTopFab from "./ScrollToTopFab";
 import { searchTranscripts } from "../logic/api";
 import { useAppStore } from "../store/store";
-import { useShallow } from "zustand/shallow";
-import { Virtuoso } from "react-virtuoso";
-import { Fab, Zoom, useScrollTrigger } from "@mui/material";
-import { KeyboardArrowUp } from "@mui/icons-material";
+import { selectQuery } from "../logic/queryParams";
+import { useQueryUrlSync } from "../logic/useQueryUrlSync";
+import { copyWithToast } from "../logic/clipboard";
+import { usePageTitle } from "../logic/usePageTitle";
 
 /**
  * @typedef {import('../logic/api').TranscriptSearch} TranscriptSearch
+ * @typedef {import('../store/types').QueryFields} QueryFields
  */
 
 /**
  * A page for searching transcripts and displaying results.
+ * The query lives in the app store and is mirrored into the URL so a search can be bookmarked or shared.
  */
 export default function Search() {
-    const queryParams = useAppStore(
-        useShallow((state) => {
-            return {
-                searchText: state.searchText,
-                streamer: state.streamer,
-                streamType: state.streamType,
-                fromDate: state.fromDate,
-                toDate: state.toDate,
-                streamTitle: state.streamTitle,
-                matchWholeWord: state.matchWholeWord,
-            };
-        }),
-    );
+    usePageTitle("Search");
+    const resetQuery = useAppStore((state) => state.resetQuery);
 
     const [searched, setSearched] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [streamsData, setStreamsData] = useState(/** @type {TranscriptSearch[]} */ ([]));
-    const [submittedSearchText, setSubmittedSearchText] = useState(queryParams.searchText);
+    const [submittedSearchText, setSubmittedSearchText] = useState("");
     const [expandedItems, setExpandedItems] = useState(new Set());
     const totalStreams = streamsData.length;
 
-    const trigger = useScrollTrigger({
-        disableHysteresis: true,
-        threshold: 300,
-    });
+    // Incremented for every search (and on reset) so a slow, superseded request cannot overwrite newer results.
+    const requestIdRef = useRef(0);
 
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: "instant",
-        });
-    };
-
-    const handleSearch = useCallback(async () => {
+    /**
+     * Run a search with the given query and show its results.
+     * @param {QueryFields} query
+     */
+    const runSearch = useCallback(async (query) => {
+        const requestId = ++requestIdRef.current;
         setIsLoading(true);
         setSearched(true);
         setError(null);
         setStreamsData([]);
         setExpandedItems(new Set());
+        setSubmittedSearchText(query.searchText);
 
         try {
-            const response = await searchTranscripts(queryParams);
+            const response = await searchTranscripts(query);
+            if (requestId !== requestIdRef.current) return;
             if (response && response.result) {
                 setStreamsData(response.result);
-                setSubmittedSearchText(queryParams.searchText);
             }
         } catch (err) {
+            if (requestId !== requestIdRef.current) return;
             setError(err.message || "Failed to search transcripts.");
         } finally {
-            setIsLoading(false);
+            if (requestId === requestIdRef.current) {
+                setIsLoading(false);
+            }
         }
-    }, [queryParams]);
+    }, []);
+
+    const { writeUrl, clearUrl, buildShareUrl } = useQueryUrlSync({ onHydrate: runSearch });
+
+    /** Submit handler: put the query in the URL and run it. */
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const query = selectQuery(useAppStore.getState());
+        writeUrl(query);
+        runSearch(query);
+    };
+
+    /** Clear every field, the URL and everything shown below the form. */
+    const handleReset = () => {
+        requestIdRef.current += 1;
+        resetQuery();
+        clearUrl();
+        setStreamsData([]);
+        setSearched(false);
+        setIsLoading(false);
+        setError(null);
+        setExpandedItems(new Set());
+        setSubmittedSearchText("");
+    };
+
+    /** Copy a link to the current query (and reflect it in the address bar). */
+    const handleShare = () => {
+        const query = selectQuery(useAppStore.getState());
+        writeUrl(query);
+        copyWithToast(buildShareUrl(query), "Link copied to clipboard");
+    };
 
     const handleToggleResult = useCallback((id, isOpen) => {
         setExpandedItems((prev) => {
@@ -86,25 +111,47 @@ export default function Search() {
         });
     }, []);
 
+    const highlightText = submittedSearchText.trim();
+    const resultsHeading =
+        `Found ${totalStreams} ${totalStreams === 1 ? "stream" : "streams"}` +
+        (highlightText ? ` for “${highlightText}”` : "");
+
     return (
-        <Container sx={{ padding: 0 }}>
-            <Box sx={{ my: 4 }}>
-                <Typography color="primary" variant="h5" component="h5" sx={{ mb: 2, wordBreak: "break-word" }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+            <Box sx={{ my: { xs: 2, sm: 4 } }}>
+                <Typography color="primary" variant="h5" component="h1" sx={{ mb: 2, wordBreak: "break-word" }}>
                     Search Transcripts
                 </Typography>
-                <Searchbar onSearch={handleSearch} />
-                <SearchFilter />
-                <Button
-                    variant="outlined"
-                    data-testid="search-transcript"
-                    onClick={handleSearch}
-                    disabled={isLoading}
-                    fullWidth
-                >
-                    {isLoading ? "Searching..." : "Search"}
-                </Button>
+                <Box component="form" onSubmit={handleSubmit} noValidate>
+                    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: "16px", textAlign: "left" }}>
+                        <Searchbar />
+                        <SearchFilter />
+                        <QueryActions
+                            submitLabel="Search"
+                            loadingLabel="Searching..."
+                            isLoading={isLoading}
+                            submitIcon={<SearchIcon />}
+                            submitTestId="search-transcript"
+                            onReset={handleReset}
+                            onShare={handleShare}
+                        />
+                    </Paper>
+                </Box>
             </Box>
-            <Box sx={{ mt: 4 }}>
+
+            <Box sx={{ mt: 3 }}>
+                {!searched && !isLoading && (
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        data-testid="search-hint"
+                        sx={{ textAlign: "center", px: 2 }}
+                    >
+                        Enter a word or phrase and/or pick filters, then press Search. Leave the text empty to list
+                        every stream matching the filters.
+                    </Typography>
+                )}
+
                 {isLoading && (
                     <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
                         <CircularProgress />
@@ -138,13 +185,15 @@ export default function Search() {
                                 borderBottom: "1px solid",
                                 borderColor: "divider",
                                 pb: 1,
+                                wordBreak: "break-word",
                             }}
                         >
-                            Found {totalStreams} streams
+                            {resultsHeading}
                         </Typography>
                         <Virtuoso
                             useWindowScroll
                             data={streamsData}
+                            computeItemKey={(_index, stream) => stream.id}
                             itemContent={(_index, stream) => (
                                 <ExpandableResult
                                     key={stream.id}
@@ -159,22 +208,7 @@ export default function Search() {
                 )}
             </Box>
 
-            <Zoom in={trigger}>
-                <Fab
-                    color="primary"
-                    size="small"
-                    aria-label="scroll back to top"
-                    onClick={scrollToTop}
-                    sx={{
-                        position: "fixed",
-                        bottom: 32,
-                        right: 32,
-                        boxShadow: 3,
-                    }}
-                >
-                    <KeyboardArrowUp />
-                </Fab>
-            </Zoom>
+            <ScrollToTopFab />
         </Container>
     );
 }

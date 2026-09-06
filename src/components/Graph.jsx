@@ -1,9 +1,8 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import {
     Typography,
     Box,
     Container,
-    Button,
     CircularProgress,
     Alert,
     FormControlLabel,
@@ -16,21 +15,30 @@ import {
     Grid,
     useMediaQuery,
 } from "@mui/material";
-import { useShallow } from "zustand/react/shallow";
 import SearchFilter from "./SearchFilter";
 import Searchbar from "./Searchbar";
 import StatCard from "./StatCard";
+import QueryActions from "./QueryActions";
+import ScrollToTopFab from "./ScrollToTopFab";
 import { LineChart } from "@mui/x-charts";
 import { useAppStore } from "../store/store";
 import { getGraph } from "../logic/api";
-import { TrendingUp, BarChart, History } from "@mui/icons-material";
+import { selectQuery } from "../logic/queryParams";
+import { useQueryUrlSync } from "../logic/useQueryUrlSync";
+import { copyWithToast } from "../logic/clipboard";
+import { usePageTitle } from "../logic/usePageTitle";
+import { TrendingUp, BarChart, History, Assessment } from "@mui/icons-material";
 
 /**
  * @typedef {import('../logic/api').GraphDataPoint} GraphDataPoint
+ * @typedef {import('../store/types').QueryFields} QueryFields
  */
+
+const emptySearchMessage = "Search text cannot be empty. Please enter a search term.";
 
 /**
  * A page for graphing all transcripts based on a filter criteria.
+ * The query lives in the store and is mirrored into the URL so a graph can be bookmarked and shared.
  */
 export default function Graph() {
     const [data, setData] = useState(/** @type {GraphDataPoint[]} */ ([]));
@@ -41,35 +49,35 @@ export default function Graph() {
     const [isCumulative, setIsCumulative] = useState(false);
 
     const isMobile = useMediaQuery("(max-width:600px)");
+    const resetQuery = useAppStore((state) => state.resetQuery);
 
-    const queryParams = useAppStore(
-        useShallow((state) => {
-            return {
-                searchText: state.searchText,
-                streamer: state.streamer,
-                streamType: state.streamType,
-                fromDate: state.fromDate,
-                toDate: state.toDate,
-                streamTitle: state.streamTitle,
-                matchWholeWord: state.matchWholeWord,
-            };
-        }),
-    );
+    usePageTitle("Graph");
 
-    const handleGraph = useCallback(async () => {
+    // Incremented for every request (and on reset) so a slow, superseded response cannot overwrite newer state.
+    const requestIdRef = useRef(0);
+
+    /**
+     * Fetch the graph data for the given query. The query is passed in (instead of read from a closure)
+     * so that the same function can be used for form submits and for URL hydration.
+     * @param {QueryFields} query
+     */
+    const runGraph = useCallback(async (query) => {
+        const requestId = ++requestIdRef.current;
         setHasSearched(true);
         setData([]);
         setStats(null);
 
-        if (!queryParams.searchText || queryParams.searchText.trim() === "") {
-            setError("Search text cannot be empty. Please enter a search term.");
+        if (!query.searchText || query.searchText.trim() === "") {
+            setIsLoading(false);
+            setError(emptySearchMessage);
             return;
         }
 
         setIsLoading(true);
         setError(null);
         try {
-            const response = await getGraph(queryParams);
+            const response = await getGraph(query);
+            if (requestId !== requestIdRef.current) return;
 
             if (response && response.result) {
                 setData(response.result);
@@ -81,11 +89,46 @@ export default function Graph() {
                 }
             }
         } catch (err) {
+            if (requestId !== requestIdRef.current) return;
             setError(err.message || "Failed to fetch graph data.");
         } finally {
-            setIsLoading(false);
+            if (requestId === requestIdRef.current) {
+                setIsLoading(false);
+            }
         }
-    }, [queryParams]);
+    }, []);
+
+    const { writeUrl, clearUrl, buildShareUrl } = useQueryUrlSync({ onHydrate: runGraph });
+
+    /**
+     * Submit handler for the query form (button click or Enter in any field).
+     * @param {React.FormEvent<HTMLFormElement>} event
+     */
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const query = selectQuery(useAppStore.getState());
+        writeUrl(query);
+        runGraph(query);
+    };
+
+    /** Clear every field, the URL and the current results. The cumulative toggle is left alone. */
+    const handleReset = () => {
+        requestIdRef.current += 1; // ignore any response still in flight
+        resetQuery();
+        clearUrl();
+        setIsLoading(false);
+        setData([]);
+        setStats(null);
+        setError(null);
+        setHasSearched(false);
+    };
+
+    /** Put the query in the address bar and copy the shareable link to the clipboard. */
+    const handleShare = () => {
+        const query = selectQuery(useAppStore.getState());
+        writeUrl(query);
+        copyWithToast(buildShareUrl(query), "Link copied to clipboard");
+    };
 
     const processedData = useMemo(() => {
         if (!isCumulative) {
@@ -120,36 +163,33 @@ export default function Graph() {
     }, [processedData]);
 
     return (
-        <Container sx={{ padding: 0 }}>
-            <Box sx={{ my: 4 }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
+            <Box sx={{ my: { xs: 2, sm: 4 } }}>
                 <Typography
                     color="primary"
                     variant="h5"
-                    component="h5"
+                    component="h1"
                     data-testid="graph-title"
                     sx={{ mb: 2, wordBreak: "break-word" }}
                 >
                     Graph Transcripts
                 </Typography>
-                <Searchbar onSearch={handleGraph} />
-                <SearchFilter />
-                <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handleGraph}
-                    disabled={isLoading}
-                    data-testid="generate-graph"
-                    sx={{
-                        mt: 2,
-                        py: 1.5,
-                        borderRadius: "12px",
-                        fontWeight: "bold",
-                        boxShadow: "none",
-                        "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
-                    }}
-                >
-                    {isLoading ? "Generating Graph..." : "Generate Graph"}
-                </Button>
+
+                <Box component="form" onSubmit={handleSubmit} noValidate>
+                    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: "16px", textAlign: "left" }}>
+                        <Searchbar />
+                        <SearchFilter />
+                        <QueryActions
+                            submitLabel="Generate Graph"
+                            loadingLabel="Generating Graph..."
+                            isLoading={isLoading}
+                            submitIcon={<Assessment />}
+                            submitTestId="generate-graph"
+                            onReset={handleReset}
+                            onShare={handleShare}
+                        />
+                    </Paper>
+                </Box>
 
                 {/* --- Results Display Area --- */}
                 <Box sx={{ mt: 4 }}>
@@ -305,6 +345,8 @@ export default function Graph() {
                     )}
                 </Box>
             </Box>
+
+            <ScrollToTopFab />
         </Container>
     );
 }

@@ -23,21 +23,44 @@ export interface OpenSlice {
     setSettingsOpen: (isOpen: boolean) => void;
 }
 
-export interface QuerySlice {
+/** The fields that make up a search / graph query. */
+export interface QueryFields {
     searchText: string;
-    setSearchText: (text: string) => void;
     streamer: string;
-    setStreamer: (s: string) => void;
     streamType: string[];
-    setStreamType: (s: string[]) => void;
     fromDate: string;
-    setFromDate: (date: string) => void;
     toDate: string;
-    setToDate: (date: string) => void;
     streamTitle: string;
-    setStreamTitle: (title: string) => void;
     matchWholeWord: boolean;
+}
+
+export interface QuerySlice extends QueryFields {
+    setSearchText: (text: string) => void;
+    setStreamer: (s: string) => void;
+    setStreamType: (s: string[]) => void;
+    setFromDate: (date: string) => void;
+    setToDate: (date: string) => void;
+    setStreamTitle: (title: string) => void;
     setMatchWholeWord: (match: boolean) => void;
+    /** Reset every query field back to its default (empty) value. */
+    resetQuery: () => void;
+    /** Overwrite the given query fields (used when loading a query from the URL). */
+    hydrateQuery: (fields: Partial<QueryFields>) => void;
+}
+
+export type ToastSeverity = "success" | "info" | "warning" | "error";
+
+export interface Toast {
+    /** Unique per toast so that repeated messages re-trigger the snackbar. */
+    key: number;
+    message: string;
+    severity: ToastSeverity;
+}
+
+export interface ToastSlice {
+    toast: Toast | null;
+    showToast: (message: string, severity?: ToastSeverity) => void;
+    hideToast: () => void;
 }
 
 export interface SettingsSlice {
@@ -66,7 +89,7 @@ export interface SettingsSlice {
 }
 
 // The combined store type
-export type AppStore = QuerySlice & OpenSlice & SettingsSlice;
+export type AppStore = QuerySlice & OpenSlice & SettingsSlice & ToastSlice;
 
 // Helper type for creating slices
 export type AppSliceCreator<T> = StateCreator<AppStore, [], [], T>;

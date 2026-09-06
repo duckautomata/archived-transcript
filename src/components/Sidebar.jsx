@@ -11,16 +11,19 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { GitHub, Help, Home, ManageSearch, InfoOutlined } from "@mui/icons-material";
 import { Tooltip, useMediaQuery } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useAppStore } from "../store/store";
+
+const GITHUB_URL = "https://github.com/duckautomata/archived-transcript";
 
 /**
  * The main application sidebar containing navigation and page selection.
+ * Navigation items are real links so they can be opened in a new tab (middle-click / ctrl+click).
  * @param {object} props
  * @param {React.ReactNode} props.children - The main content area children.
  */
 export default function Sidebar({ children }) {
-    const navigate = useNavigate();
+    const { pathname } = useLocation();
 
     const sidebarOpen = useAppStore((state) => state.sidebarOpen);
     const setSidebarOpen = useAppStore((state) => state.setSidebarOpen);
@@ -33,10 +36,25 @@ export default function Sidebar({ children }) {
     const drawerWidth = isMobile ? 180 : 200;
     const drawerWidthCollapsed = 60;
 
+    // On desktop the drawer can be collapsed to icons only; on mobile it is either fully open or hidden.
+    const collapsed = !isMobile && !sidebarOpen;
+    const showLabels = !collapsed;
+
     const pages = [
-        { name: "Search", icon: <ManageSearch />, value: "search" },
-        { name: "Graph", icon: <AssessmentIcon />, value: "graph" },
+        { name: "Search", icon: <ManageSearch />, path: "/search" },
+        { name: "Graph", icon: <AssessmentIcon />, path: "/graph" },
     ];
+
+    const itemButtonSx = {
+        justifyContent: collapsed ? "center" : "initial",
+        px: 2.5,
+        overflow: "hidden",
+    };
+
+    const itemIconSx = { minWidth: 0, mr: collapsed ? "auto" : 3 };
+
+    /** Tooltip text shown next to an icon-only item; hidden when the label is visible. */
+    const tooltipFor = (name) => (collapsed ? name : "");
 
     const handleCollapseToggle = () => {
         if (isMobile) {
@@ -46,13 +64,8 @@ export default function Sidebar({ children }) {
         }
     };
 
-    const handleHomeButton = () => {
-        handlePageChange("/");
-    };
-
-    const handlePageChange = (value) => {
+    const closeMobileDrawer = () => {
         if (isMobile) setMobileOpen(false);
-        navigate(value);
     };
 
     return (
@@ -70,7 +83,11 @@ export default function Sidebar({ children }) {
                         boxShadow: 2,
                     }}
                 >
-                    <ListItemButton onClick={() => setMobileOpen(true)} sx={{ borderRadius: "50%", p: 1 }}>
+                    <ListItemButton
+                        onClick={() => setMobileOpen(true)}
+                        aria-label="Open sidebar"
+                        sx={{ borderRadius: "50%", p: 1 }}
+                    >
                         <MenuIcon />
                     </ListItemButton>
                 </Box>
@@ -82,6 +99,8 @@ export default function Sidebar({ children }) {
                 sx={{
                     width: isMobile ? drawerWidth : sidebarOpen ? drawerWidth : drawerWidthCollapsed,
                     flexShrink: 0,
+                    // Animate the reserved space in step with the (fixed) drawer paper so content does not jump
+                    transition: "width 0.3s ease-in-out",
                     "& .MuiDrawer-paper": {
                         width: isMobile ? drawerWidth : sidebarOpen ? drawerWidth : drawerWidthCollapsed,
                         boxSizing: "border-box",
@@ -96,153 +115,112 @@ export default function Sidebar({ children }) {
                         <ListItem disablePadding>
                             <ListItemButton
                                 onClick={handleCollapseToggle}
+                                aria-label="Toggle sidebar"
+                                aria-expanded={isMobile ? mobileOpen : sidebarOpen}
                                 sx={{
-                                    justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
+                                    justifyContent: collapsed ? "center" : "initial",
                                     px: 2.5,
                                 }}
                             >
-                                <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                                <ListItemIcon sx={itemIconSx}>
                                     <MenuIcon />
                                 </ListItemIcon>
-                                {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="" />}
+                                {showLabels && <ListItemText primary="" />}
                             </ListItemButton>
                         </ListItem>
                         {/* Home Button */}
                         <ListItem disablePadding>
-                            <Tooltip title={!isMobile && !sidebarOpen ? "Home" : ""} placement="right">
+                            <Tooltip title={tooltipFor("Home")} placement="right">
                                 <ListItemButton
-                                    onClick={handleHomeButton}
-                                    sx={{
-                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
-                                        px: 2.5,
-                                        overflow: "hidden",
-                                    }}
+                                    component={RouterLink}
+                                    to="/"
+                                    selected={pathname === "/"}
+                                    aria-current={pathname === "/" ? "page" : undefined}
+                                    onClick={closeMobileDrawer}
+                                    sx={itemButtonSx}
                                 >
-                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                                    <ListItemIcon sx={itemIconSx}>
                                         <Home />
                                     </ListItemIcon>
-                                    {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="Home" />}
+                                    {showLabels && <ListItemText primary="Home" />}
                                 </ListItemButton>
                             </Tooltip>
                         </ListItem>
-                        {!isMobile && !sidebarOpen && <ListItem sx={{ height: 16 }} />}
+                        {collapsed && <ListItem sx={{ height: 16 }} />}
                         {/* Page Selection */}
-                        <ListItemText
-                            primary="Pages"
-                            sx={{ mt: 2, ml: 1, display: (!isMobile && sidebarOpen) || isMobile ? "block" : "none" }}
-                        />
+                        <ListItemText primary="Pages" sx={{ mt: 2, ml: 1, display: showLabels ? "block" : "none" }} />
                         {pages.map((page) => (
-                            <ListItem key={page.value} disablePadding>
-                                <Tooltip title={!isMobile && !sidebarOpen ? page.name : ""} placement="right">
+                            <ListItem key={page.path} disablePadding>
+                                <Tooltip title={tooltipFor(page.name)} placement="right">
                                     <ListItemButton
-                                        selected={window.location.pathname.split("/")[3] === page.value}
-                                        onClick={() => handlePageChange(page.value)}
-                                        sx={{
-                                            justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
-                                            px: 2.5,
-                                            overflow: "hidden",
-                                        }}
+                                        component={RouterLink}
+                                        to={page.path}
+                                        selected={pathname.startsWith(page.path)}
+                                        aria-current={pathname.startsWith(page.path) ? "page" : undefined}
+                                        onClick={closeMobileDrawer}
+                                        sx={itemButtonSx}
                                     >
-                                        <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
-                                            {page.icon}
-                                        </ListItemIcon>
-                                        {((!isMobile && sidebarOpen) || isMobile) && (
-                                            <ListItemText primary={page.name} />
-                                        )}
+                                        <ListItemIcon sx={itemIconSx}>{page.icon}</ListItemIcon>
+                                        {showLabels && <ListItemText primary={page.name} />}
                                     </ListItemButton>
                                 </Tooltip>
                             </ListItem>
                         ))}
                         {/* GitHub */}
                         <ListItem disablePadding sx={{ mt: 2 }}>
-                            <Tooltip title="https://github.com/duckautomata/archived-transcript" placement="right">
+                            <Tooltip title="Source code on GitHub (opens in a new tab)" placement="right" describeChild>
                                 <ListItemButton
-                                    onClick={() => {
-                                        window.open(
-                                            "https://github.com/duckautomata/archived-transcript",
-                                            "_blank",
-                                            "noopener noreferrer",
-                                        );
-                                    }}
-                                    sx={{
-                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
-                                        px: 2.5,
-                                        overflow: "hidden",
-                                    }}
+                                    component="a"
+                                    href={GITHUB_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label="GitHub"
+                                    sx={itemButtonSx}
                                 >
-                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                                    <ListItemIcon sx={itemIconSx}>
                                         <GitHub />
                                     </ListItemIcon>
-                                    {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="GitHub" />}
+                                    {showLabels && <ListItemText primary="GitHub" />}
                                 </ListItemButton>
                             </Tooltip>
                         </ListItem>
                         {/* Help */}
                         <ListItem disablePadding>
-                            <Tooltip title={!isMobile && !sidebarOpen ? "Help" : ""} placement="right">
-                                <ListItemButton
-                                    onClick={() => setHelpOpen(true)}
-                                    sx={{
-                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
-                                        px: 2.5,
-                                        overflow: "hidden",
-                                    }}
-                                >
-                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                            <Tooltip title={tooltipFor("Help")} placement="right">
+                                <ListItemButton onClick={() => setHelpOpen(true)} sx={itemButtonSx}>
+                                    <ListItemIcon sx={itemIconSx}>
                                         <Help />
                                     </ListItemIcon>
-                                    {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="Help" />}
+                                    {showLabels && <ListItemText primary="Help" />}
                                 </ListItemButton>
                             </Tooltip>
                         </ListItem>
                         {/* Info */}
                         <ListItem disablePadding>
-                            <Tooltip title={!isMobile && !sidebarOpen ? "System Info" : ""} placement="right">
-                                <ListItemButton
-                                    onClick={() => setInfoOpen(true)}
-                                    sx={{
-                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
-                                        px: 2.5,
-                                        overflow: "hidden",
-                                    }}
-                                >
-                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                            <Tooltip title={tooltipFor("System Info")} placement="right">
+                                <ListItemButton onClick={() => setInfoOpen(true)} sx={itemButtonSx}>
+                                    <ListItemIcon sx={itemIconSx}>
                                         <InfoOutlined />
                                     </ListItemIcon>
-                                    {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="System Info" />}
+                                    {showLabels && <ListItemText primary="System Info" />}
                                 </ListItemButton>
                             </Tooltip>
                         </ListItem>
                         {/* Settings */}
                         <ListItem disablePadding>
-                            <Tooltip title={!isMobile && !sidebarOpen ? "Settings" : ""} placement="right">
-                                <ListItemButton
-                                    onClick={() => setSettingsOpen(true)}
-                                    sx={{
-                                        justifyContent: !isMobile && !sidebarOpen ? "center" : "initial",
-                                        px: 2.5,
-                                        overflow: "hidden",
-                                    }}
-                                >
-                                    <ListItemIcon sx={{ minWidth: 0, mr: !isMobile && !sidebarOpen ? "auto" : 3 }}>
+                            <Tooltip title={tooltipFor("Settings")} placement="right">
+                                <ListItemButton onClick={() => setSettingsOpen(true)} sx={itemButtonSx}>
+                                    <ListItemIcon sx={itemIconSx}>
                                         <SettingsIcon />
                                     </ListItemIcon>
-                                    {((!isMobile && sidebarOpen) || isMobile) && <ListItemText primary="Settings" />}
+                                    {showLabels && <ListItemText primary="Settings" />}
                                 </ListItemButton>
                             </Tooltip>
                         </ListItem>
                     </List>
                 </Box>
             </Drawer>
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    padding: 1,
-                    width: isMobile ? "100%" : `calc(97vw - ${sidebarOpen ? drawerWidth : drawerWidthCollapsed}px)`,
-                    transition: "width 0.3s ease-in-out, margin-left 0.3s ease-in-out",
-                }}
-            >
+            <Box component="main" sx={{ flexGrow: 1, minWidth: 0, width: "100%", padding: 1 }}>
                 {children}
             </Box>
         </Box>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
     Typography,
     Box,
@@ -6,6 +6,8 @@ import {
     Button,
     CircularProgress,
     Alert,
+    FormControlLabel,
+    Switch,
     Paper,
     Divider,
     Chip,
@@ -15,28 +17,60 @@ import {
     Grid,
     useMediaQuery,
 } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
-import { useShallow } from "zustand/react/shallow";
+import { Link as RouterLink, useParams } from "react-router-dom";
 import Searchbar from "./Searchbar";
 import StatCard from "./StatCard";
+import QueryActions from "./QueryActions";
+import ScrollToTopFab from "./ScrollToTopFab";
+import ExternalLinkDialog from "./ExternalLinkDialog";
 import { LineChart } from "@mui/x-charts";
 import { useAppStore } from "../store/store";
 import { getGraphById, getStreamMetadata } from "../logic/api";
-import { secondsToTime, timeToSeconds } from "../logic/timezone";
-import { Info, BarChart, History, CalendarMonth, LocalOffer, Person } from "@mui/icons-material";
+import { secondsToTime, timeToSeconds, toLocalDate } from "../logic/timezone";
+import { selectQuery } from "../logic/queryParams";
+import { useQueryUrlSync } from "../logic/useQueryUrlSync";
+import { copyWithToast } from "../logic/clipboard";
+import { usePageTitle } from "../logic/usePageTitle";
+import { getTranscriptPath, getVideoUrl } from "../logic/videoLinks";
+import {
+    Info,
+    BarChart,
+    History,
+    CalendarMonth,
+    LocalOffer,
+    Person,
+    Assessment,
+    Description,
+    OpenInNew,
+} from "@mui/icons-material";
 
 /**
  * @typedef {import('../logic/api').StreamMetadata} StreamMetadata
  * @typedef {import('../logic/api').GraphDataPoint} GraphDataPoint
+ * @typedef {import('../store/types').QueryFields} QueryFields
  */
+
+/** The only query fields the single stream graph uses (and mirrors into the URL). */
+const graphSingleFields = Object.freeze(["searchText", "matchWholeWord"]);
+
+const emptySearchMessage = "Search text cannot be empty. Please enter a search term.";
+
+/** Shared look of the header action buttons (same as on the transcript page). */
+const actionButtonSx = {
+    borderRadius: "8px",
+    textTransform: "none",
+    fontWeight: "bold",
+    boxShadow: "none",
+    "&:hover": { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" },
+};
 
 /**
  * A page for graphing a specific transcript.
  * Shows an error message if the stream metadata call fails (400 or 500).
+ * The search text / whole word toggle are mirrored into the URL so a graph can be bookmarked and shared.
  */
 export default function GraphSingle() {
     const { id } = useParams();
-    const navigate = useNavigate();
     const [metadata, setMetadata] = useState(/** @type {StreamMetadata | null} */ (null));
     const [metaError, setMetaError] = useState(null); // Separate error for metadata fetch
     const [data, setData] = useState(/** @type {GraphDataPoint[]} */ ([]));
@@ -44,22 +78,18 @@ export default function GraphSingle() {
     const [error, setError] = useState(null);
     const [stats, setStats] = useState(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [externalUrl, setExternalUrl] = useState("");
 
     const isMobile = useMediaQuery("(max-width:600px)");
 
-    const queryParams = useAppStore(
-        useShallow((state) => {
-            return {
-                searchText: state.searchText,
-                streamer: state.streamer,
-                streamType: state.streamType,
-                from: state.fromDate,
-                to: state.toDate,
-                streamTitle: state.streamTitle,
-                matchWholeWord: state.matchWholeWord,
-            };
-        }),
-    );
+    const matchWholeWord = useAppStore((state) => state.matchWholeWord);
+    const setMatchWholeWord = useAppStore((state) => state.setMatchWholeWord);
+    const hydrateQuery = useAppStore((state) => state.hydrateQuery);
+
+    usePageTitle(metadata ? `Graph · ${metadata.streamTitle}` : "Graph");
+
+    // Incremented for every request (and on reset) so a slow, superseded response cannot overwrite newer state.
+    const requestIdRef = useRef(0);
 
     useEffect(() => {
         if (!id) {
@@ -95,43 +125,92 @@ export default function GraphSingle() {
         };
     }, [id]);
 
-    const handleGraph = useCallback(async () => {
-        setHasSearched(true);
+    /**
+     * Fetch the graph data for this stream with the given query. The query is passed in (instead of read
+     * from a closure) so that the same function can be used for form submits and for URL hydration.
+     * @param {QueryFields} query
+     */
+    const runGraph = useCallback(
+        async (query) => {
+            const requestId = ++requestIdRef.current;
+            setHasSearched(true);
+            setData([]);
+            setStats(null);
+
+            if (!id) {
+                setIsLoading(false);
+                setError("No transcript ID found in URL.");
+                return;
+            }
+            if (!query.searchText || query.searchText.trim() === "") {
+                setIsLoading(false);
+                setError(emptySearchMessage);
+                return;
+            }
+
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await getGraphById(id, query);
+                if (requestId !== requestIdRef.current) return;
+
+                if (response && response.result) {
+                    setData(response.result);
+
+                    if (response.result.length > 0) {
+                        const totalCount = response.result.reduce((acc, d) => acc + d.y, 0);
+                        const maxCount = Math.max(...response.result.map((d) => d.y));
+                        setStats({ total: totalCount, max: maxCount });
+                    }
+                } else {
+                    setData([]);
+                }
+            } catch (err) {
+                if (requestId !== requestIdRef.current) return;
+                setError(err.message || "Failed to fetch graph data.");
+            } finally {
+                if (requestId === requestIdRef.current) {
+                    setIsLoading(false);
+                }
+            }
+        },
+        [id],
+    );
+
+    const { writeUrl, clearUrl, buildShareUrl } = useQueryUrlSync({ fields: graphSingleFields, onHydrate: runGraph });
+
+    /**
+     * Submit handler for the query form (button click or Enter in the search field).
+     * @param {React.FormEvent<HTMLFormElement>} event
+     */
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const query = selectQuery(useAppStore.getState());
+        writeUrl(query);
+        runGraph(query);
+    };
+
+    /**
+     * Clear the fields this page uses, the URL and the current results. Only the search text and the
+     * whole word toggle are reset so that filters chosen on the Search page survive.
+     */
+    const handleReset = () => {
+        requestIdRef.current += 1; // ignore any response still in flight
+        hydrateQuery({ searchText: "", matchWholeWord: false });
+        clearUrl();
+        setIsLoading(false);
         setData([]);
         setStats(null);
-
-        if (!id) {
-            setError("No transcript ID found in URL.");
-
-            return;
-        }
-        if (queryParams.searchText === "") {
-            setError("Search text cannot be empty. Please enter a search term.");
-            return;
-        }
-
-        setIsLoading(true);
         setError(null);
-        try {
-            const response = await getGraphById(id, queryParams);
+        setHasSearched(false);
+    };
 
-            if (response && response.result) {
-                setData(response.result);
-
-                if (response.result.length > 0) {
-                    const totalCount = response.result.reduce((acc, d) => acc + d.y, 0);
-                    const maxCount = Math.max(...response.result.map((d) => d.y));
-                    setStats({ total: totalCount, max: maxCount });
-                }
-            } else {
-                setData([]);
-            }
-        } catch (err) {
-            setError(err.message || "Failed to fetch graph data.");
-        } finally {
-            setIsLoading(false);
-        }
-    }, [id, queryParams]);
+    /** Put the query in the address bar and copy the shareable link to the clipboard. */
+    const handleShare = () => {
+        const query = selectQuery(useAppStore.getState());
+        writeUrl(query);
+        copyWithToast(buildShareUrl(query), "Link copied to clipboard");
+    };
 
     const processedData = useMemo(() => {
         if (!data.length) {
@@ -158,7 +237,7 @@ export default function GraphSingle() {
     }, [processedData]);
 
     return (
-        <Container sx={{ padding: 0 }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
             {metaError?.status === 404 ? (
                 <Box
                     sx={{
@@ -175,16 +254,16 @@ export default function GraphSingle() {
                         Error: Not Found
                     </Typography>
                     <Typography sx={{ color: "text.secondary" }}>{metaError.message}</Typography>
-                    <Button variant="contained" onClick={() => navigate("/")} sx={{ mt: 2 }}>
+                    <Button variant="contained" component={RouterLink} to="/" sx={{ mt: 2 }}>
                         Go Back Home
                     </Button>
                 </Box>
             ) : (
-                <Box sx={{ my: 4 }}>
+                <Box sx={{ my: { xs: 2, sm: 4 } }}>
                     <Typography
                         color="primary"
                         variant="h5"
-                        component="h5"
+                        component="h1"
                         data-testid="stream-title"
                         sx={{ mb: 2, wordBreak: "break-word" }}
                     >
@@ -197,7 +276,6 @@ export default function GraphSingle() {
                             sx={{
                                 p: isMobile ? 1.5 : 2,
                                 mb: 3,
-                                // center div
                                 borderRadius: "12px",
                                 border: "1px solid",
                                 borderColor: "divider",
@@ -228,8 +306,9 @@ export default function GraphSingle() {
                             <Stack
                                 direction={isMobile ? "column" : "row"}
                                 spacing={isMobile ? 1 : 2}
+                                useFlexGap
                                 divider={<Divider orientation="vertical" flexItem />}
-                                sx={{ flexWrap: "wrap", gap: 1 }}
+                                sx={{ flexWrap: "wrap" }}
                             >
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                     <Person fontSize="small" color="action" />
@@ -239,7 +318,9 @@ export default function GraphSingle() {
                                 </Box>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                     <CalendarMonth fontSize="small" color="action" />
-                                    <Typography variant="body2">{metadata.date}</Typography>
+                                    <Typography variant="body2">
+                                        {toLocalDate(metadata.date) || metadata.date}
+                                    </Typography>
                                 </Box>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                     <LocalOffer fontSize="small" color="action" />
@@ -248,40 +329,76 @@ export default function GraphSingle() {
                                         size="small"
                                         sx={{
                                             fontWeight: "bold",
-                                            backgroundColor: alpha("#3b82f6", 0.1),
-                                            color: "#3b82f6",
+                                            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.12),
+                                            color: "primary.main",
                                             borderRadius: "6px",
                                             height: 20,
                                         }}
                                     />
                                 </Box>
                             </Stack>
+
+                            <Divider sx={{ my: 2, opacity: 0.6 }} />
+
+                            {/* --- Metadata actions --- */}
+                            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    startIcon={<Description />}
+                                    component={RouterLink}
+                                    to={getTranscriptPath(id)}
+                                    data-testid="view-transcript-link"
+                                    sx={actionButtonSx}
+                                >
+                                    View Transcript
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    startIcon={<OpenInNew />}
+                                    onClick={() => setExternalUrl(getVideoUrl(id, metadata.streamType))}
+                                    data-testid="open-stream"
+                                    sx={actionButtonSx}
+                                >
+                                    Open Stream
+                                </Button>
+                            </Stack>
                         </Paper>
                     )}
                     {metaError && (
-                        <Alert severity="error" sx={{ my: 2 }}>
-                            {metaError}
+                        <Alert severity="error" data-testid="metadata-error" sx={{ my: 2 }}>
+                            {metaError.message}
                         </Alert>
                     )}
 
-                    <Searchbar />
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={handleGraph}
-                        disabled={isLoading}
-                        data-testid="generate-graph"
-                        sx={{
-                            mt: 2,
-                            py: 1.5,
-                            borderRadius: "12px",
-                            fontWeight: "bold",
-                            boxShadow: "none",
-                            "&:hover": { boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
-                        }}
-                    >
-                        {isLoading ? "Generating Graph..." : "Generate Graph"}
-                    </Button>
+                    <Box component="form" onSubmit={handleSubmit} noValidate>
+                        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, borderRadius: "16px", textAlign: "left" }}>
+                            <Searchbar />
+                            {/* ml offsets the FormControlLabel's negative margin so the switch lines up with the field */}
+                            <Box sx={{ mt: 1, ml: 1.5 }}>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={matchWholeWord}
+                                            onChange={(e) => setMatchWholeWord(e.target.checked)}
+                                            data-testid="match-whole-word-switch"
+                                        />
+                                    }
+                                    label="Match Whole Word"
+                                />
+                            </Box>
+                            <QueryActions
+                                submitLabel="Generate Graph"
+                                loadingLabel="Generating Graph..."
+                                isLoading={isLoading}
+                                submitIcon={<Assessment />}
+                                submitTestId="generate-graph"
+                                onReset={handleReset}
+                                onShare={handleShare}
+                            />
+                        </Paper>
+                    </Box>
 
                     {/* --- Results Display Area --- */}
                     <Box sx={{ mt: 4 }}>
@@ -393,6 +510,9 @@ export default function GraphSingle() {
                     </Box>
                 </Box>
             )}
+
+            <ExternalLinkDialog url={externalUrl} onClose={() => setExternalUrl("")} copyMessage="Video link copied" />
+            <ScrollToTopFab />
         </Container>
     );
 }

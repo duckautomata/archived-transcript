@@ -14,35 +14,64 @@ import {
     Stack,
 } from "@mui/material";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { getGraphPath, getTranscriptPath } from "../logic/videoLinks";
+import { usePageTitle } from "../logic/usePageTitle";
 
+const cardSx = {
+    width: "100%",
+    borderRadius: 4,
+    transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+    "&:hover": {
+        transform: "translateY(-8px)",
+        boxShadow: (theme) => theme.shadows[10],
+    },
+};
+
+const cardActionSx = {
+    height: "100%",
+    p: 4,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+};
+
+/**
+ * Props that turn a Button into a real in-app link (so middle-click / ctrl+click open a new tab).
+ * While `path` is empty the button stays a plain button instead of rendering a link to nowhere.
+ * @param {string} path - In-app path, or "" when there is nothing to link to yet
+ * @returns {object}
+ */
+function linkProps(path) {
+    return path ? { component: RouterLink, to: path } : {};
+}
+
+/**
+ * Landing page: links to the Search / Graph pages, direct access to a transcript or graph by id,
+ * and a link to the live site.
+ */
 export default function Home() {
+    usePageTitle("");
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width:599px)");
     const [transcriptId, setTranscriptId] = useState("");
     const [graphId, setGraphId] = useState("");
 
-    const handleViewTranscript = () => {
-        if (transcriptId.trim()) {
-            navigate(`/transcript/${transcriptId.trim()}`);
-        }
-    };
-
-    const handleViewGraph = () => {
-        if (graphId.trim()) {
-            navigate(`/graph/${graphId.trim()}`);
-        }
-    };
+    const trimmedTranscriptId = transcriptId.trim();
+    const trimmedGraphId = graphId.trim();
+    const transcriptPath = trimmedTranscriptId ? getTranscriptPath(trimmedTranscriptId) : "";
+    const graphPath = trimmedGraphId ? getGraphPath(trimmedGraphId) : "";
 
     const handleTranscriptKeyDown = (e) => {
-        if (e.key === "Enter") {
-            handleViewTranscript();
+        if (e.key === "Enter" && transcriptPath) {
+            navigate(transcriptPath);
         }
     };
 
     const handleGraphKeyDown = (e) => {
-        if (e.key === "Enter") {
-            handleViewGraph();
+        if (e.key === "Enter" && graphPath) {
+            navigate(graphPath);
         }
     };
 
@@ -84,29 +113,12 @@ export default function Home() {
             <Grid container spacing={4} sx={{ justifyContent: "center", alignItems: "stretch", mb: 6, maxWidth: 800 }}>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={500}>
-                        <Card
-                            sx={{
-                                width: "100%",
-                                borderRadius: 4,
-                                transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-                                "&:hover": {
-                                    transform: "translateY(-8px)",
-                                    boxShadow: (theme) => theme.shadows[10],
-                                },
-                            }}
-                            elevation={4}
-                        >
+                        <Card sx={cardSx} elevation={4}>
                             <CardActionArea
-                                onClick={() => navigate("/search")}
+                                component={RouterLink}
+                                to="/search"
                                 data-testid="search-btn"
-                                sx={{
-                                    height: "100%",
-                                    p: 4,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
+                                sx={cardActionSx}
                             >
                                 <Box
                                     sx={{
@@ -134,29 +146,12 @@ export default function Home() {
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }} sx={{ display: "flex" }}>
                     <Fade in={true} timeout={700}>
-                        <Card
-                            sx={{
-                                width: "100%",
-                                borderRadius: 4,
-                                transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-                                "&:hover": {
-                                    transform: "translateY(-8px)",
-                                    boxShadow: (theme) => theme.shadows[10],
-                                },
-                            }}
-                            elevation={4}
-                        >
+                        <Card sx={cardSx} elevation={4}>
                             <CardActionArea
-                                onClick={() => navigate("/graph")}
+                                component={RouterLink}
+                                to="/graph"
                                 data-testid="graph-btn"
-                                sx={{
-                                    height: "100%",
-                                    p: 4,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
+                                sx={cardActionSx}
                             >
                                 <Box
                                     sx={{
@@ -204,8 +199,9 @@ export default function Home() {
                             />
                             <Button
                                 variant="contained"
-                                onClick={handleViewTranscript}
-                                disabled={!transcriptId.trim()}
+                                {...linkProps(transcriptPath)}
+                                disabled={!transcriptPath}
+                                data-testid="view-transcript-btn"
                                 sx={{ minWidth: 80 }}
                             >
                                 View
@@ -225,8 +221,9 @@ export default function Home() {
                             <Button
                                 variant="contained"
                                 color="secondary"
-                                onClick={handleViewGraph}
-                                disabled={!graphId.trim()}
+                                {...linkProps(graphPath)}
+                                disabled={!graphPath}
+                                data-testid="graph-stream-btn"
                                 sx={{ minWidth: 80 }}
                             >
                                 Graph

@@ -16,6 +16,7 @@ import EnvironmentBadge from "./components/EnvironmentBadge";
 import SettingsPopup from "./components/SettingsPopup";
 import HelpPopup from "./components/HelpPopup";
 import InfoPopup from "./components/InfoPopup";
+import ToastSnackbar from "./components/ToastSnackbar";
 
 function App() {
     const theme = useAppStore((state) => state.theme);
@@ -29,7 +30,8 @@ function App() {
 
     return (
         <ThemeProvider theme={colorTheme}>
-            <CssBaseline />
+            {/* enableColorScheme makes native controls (date pickers, scrollbars) follow the chosen theme */}
+            <CssBaseline enableColorScheme />
             <UpdateAlert />
             <EnvironmentBadge />
             {window.maintenance ? (
@@ -52,6 +54,7 @@ function App() {
             <SettingsPopup />
             <HelpPopup />
             <InfoPopup />
+            <ToastSnackbar />
         </ThemeProvider>
     );
 }

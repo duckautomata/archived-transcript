@@ -9,11 +9,6 @@ import {
     useTheme,
     IconButton,
     Tooltip,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
     Stack,
     Accordion,
     AccordionSummary,
@@ -21,14 +16,18 @@ import {
     Paper,
     Chip,
     Divider,
+    Link,
     alpha,
 } from "@mui/material";
-import { Link, Description, Timeline, OpenInNew, ExpandMore } from "@mui/icons-material";
+import { Link as LinkIcon, Description, Timeline, OpenInNew, ExpandMore } from "@mui/icons-material";
 import { memo, useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { toLocalDate, timeToSeconds } from "../logic/timezone";
+import { Link as RouterLink } from "react-router-dom";
+import { toLocalDate } from "../logic/timezone";
 import { useAppStore } from "../store/store";
 import { contextLimit } from "../config";
+import { getGraphPath, getTranscriptPath, getVideoUrl } from "../logic/videoLinks";
+import ExternalLinkDialog from "./ExternalLinkDialog";
+import LineActionsDialog from "./LineActionsDialog";
 
 /**
  * @typedef {import('../logic/api').TranscriptSearch} TranscriptSearch
@@ -38,17 +37,19 @@ const SegmentTheme = styled("span")(({ theme }) => ({
     color: theme.palette.primary.main,
 }));
 
-const TimestampTheme = styled("span")(({ theme }) => ({
-    "&": {
-        color: theme.palette.timestamp.main,
-    },
-}));
+/**
+ * Escape a string so it can be used literally inside a RegExp.
+ * @param {string} value
+ * @returns {string}
+ */
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * A memoized component for displaying a single line of context.
  * @param {Object} props
  * @param {string} props.text - The text of the line.
  * @param {string} props.start - The timestamp of the start of the line.
+ * @param {string} props.linePath - In-app path of the line in the full transcript ("/transcript/<id>#T..").
  * @param {string} props.targetWord - The word to highlight.
  * @param {number} props.margin - The margin to apply to the line.
  * @param {function} props.onActionClick - The callback function to call when the line button is clicked.
@@ -59,17 +60,21 @@ const ContextLine = memo(
      * @param {Object} props
      * @param {string} props.text - The text of the line.
      * @param {string} props.start - The timestamp of the start of the line.
+     * @param {string} props.linePath - In-app path of the line in the full transcript ("/transcript/<id>#T..").
      * @param {string} props.targetWord - The word to highlight.
      * @param {number} props.margin - The margin to apply to the line.
      * @param {function} props.onActionClick - The callback function to call when the line button is clicked.
      */
-    function ContextLine({ text, start, targetWord, margin, onActionClick }) {
+    function ContextLine({ text, start, linePath, targetWord, margin, onActionClick }) {
         const theme = useTheme();
         const density = useAppStore((state) => state.density);
 
-        const { parts, regex } = useMemo(() => {
-            const r = new RegExp(`(${targetWord})`, "gi");
-            return { parts: text.split(r), regex: r };
+        // Split the line around every (case-insensitive) occurrence of the target word. Because the pattern
+        // is wrapped in a capture group, the matches land on the odd indexes of the resulting array.
+        // When there is nothing to highlight we skip the split entirely and render the plain text.
+        const parts = useMemo(() => {
+            if (!targetWord || !targetWord.trim()) return null;
+            return text.split(new RegExp(`(${escapeRegExp(targetWord)})`, "gi"));
         }, [text, targetWord]);
 
         const iconColor = theme.palette.id.main;
@@ -82,23 +87,34 @@ const ContextLine = memo(
 
         return (
             <Box sx={{ display: "flex", alignItems: "center", mt: margin, textAlign: "left" }}>
-                <Tooltip title="Line Actions">
-                    <IconButton size={iconSize} sx={iconSx} onClick={handleActionTrigger}>
-                        <Link style={{ color: iconColor }} />
+                <Tooltip title="Line actions">
+                    <IconButton size={iconSize} sx={iconSx} onClick={handleActionTrigger} aria-label="Line actions">
+                        <LinkIcon style={{ color: iconColor }} />
                     </IconButton>
                 </Tooltip>{" "}
                 <Typography component="p" sx={{ ml: 1, wordBreak: "break-word" }}>
-                    [<TimestampTheme theme={theme}>{start}</TimestampTheme>]{" "}
+                    <Link
+                        component={RouterLink}
+                        to={linePath}
+                        underline="hover"
+                        title="Open this line in the full transcript"
+                        data-testid="context-timestamp"
+                        sx={{ color: theme.palette.timestamp.main, fontVariantNumeric: "tabular-nums" }}
+                    >
+                        [{start}]
+                    </Link>{" "}
                     <span>
-                        {parts.map((part, index) =>
-                            regex.test(part) ? (
-                                <SegmentTheme key={index}>
-                                    <u>{part}</u>
-                                </SegmentTheme>
-                            ) : (
-                                <span key={index}>{part}</span>
-                            ),
-                        )}
+                        {parts === null
+                            ? text
+                            : parts.map((part, index) =>
+                                  index % 2 === 1 ? (
+                                      <SegmentTheme key={index}>
+                                          <u>{part}</u>
+                                      </SegmentTheme>
+                                  ) : (
+                                      <span key={index}>{part}</span>
+                                  ),
+                              )}
                     </span>
                 </Typography>
             </Box>
@@ -106,11 +122,24 @@ const ContextLine = memo(
     },
 );
 
+const emptyActionContext = {
+    timestamp: "",
+    lineText: "",
+};
+
+const actionButtonSx = {
+    borderRadius: "8px",
+    textTransform: "none",
+    fontWeight: "bold",
+};
+
 /**
  * A memoized component for displaying an expandable result of a transcript search for a specific stream.
  * @param {Object} props
  * @param {TranscriptSearch} props.stream - The result of a transcript search for a specific stream.
  * @param {string} props.targetWord - The word to highlight.
+ * @param {boolean} props.isExpanded - Whether the accordion is currently expanded.
+ * @param {(isExpanded: boolean) => void} props.onToggle - Called when the accordion is expanded / collapsed.
  */
 export default memo(
     /**
@@ -118,23 +147,19 @@ export default memo(
      * @param {Object} props
      * @param {TranscriptSearch} props.stream - The result of a transcript search for a specific stream.
      * @param {string} props.targetWord - The word to highlight.
+     * @param {boolean} props.isExpanded - Whether the accordion is currently expanded.
+     * @param {(isExpanded: boolean) => void} props.onToggle - Called when the accordion is expanded / collapsed.
      */
     function ExpandableResult({ stream, targetWord, isExpanded, onToggle }) {
-        const navigate = useNavigate();
         const isMobile = useMediaQuery("(max-width:768px)");
         const { id, streamer, date, streamType, title, contexts } = stream;
         const lineCount = contexts.length;
         const limited = lineCount === contextLimit;
+        const matchLabel = `${lineCount} ${lineCount === 1 ? "match" : "matches"}`;
 
         const [dialogOpen, setDialogOpen] = useState(false);
-        const [actionContext, setActionContext] = useState({
-            timestamp: "",
-            lineText: "",
-            internalJumpUrl: "",
-            externalVideoUrl: "",
-        });
-        const [externalConfirmOpen, setExternalConfirmOpen] = useState(false);
-        const [confirmUrl, setConfirmUrl] = useState("");
+        const [actionContext, setActionContext] = useState(emptyActionContext);
+        const [externalUrl, setExternalUrl] = useState("");
         const density = useAppStore((state) => state.density);
         let marginBottom = 0.5;
         if (density === "standard") {
@@ -143,99 +168,21 @@ export default memo(
             marginBottom = 2.5;
         }
 
-        const handleTranscriptClick = () => {
-            navigate(`/transcript/${id}`);
-        };
+        // --- Line Action Handlers ---
+        const handleActionClick = useCallback((timestamp, lineText) => {
+            setActionContext({ timestamp, lineText });
+            setDialogOpen(true);
+        }, []);
 
-        const handleGraphClick = () => {
-            navigate(`/graph/${id}`);
-        };
-
-        // --- Combined Action Handler ---
-        const handleActionClick = useCallback(
-            (timestamp, lineText) => {
-                let externalUrl;
-                let internalUrl;
-                const parts = timestamp.split(":");
-
-                // Calculate External URL
-                if (streamType === "Twitch") {
-                    const timeParam = `${parts[0]}h${parts[1]}m${parts[2]}s`;
-                    externalUrl = `https://www.twitch.tv/videos/${id}?t=${timeParam}`;
-                } else {
-                    const seconds = timeToSeconds(timestamp);
-                    externalUrl = `https://www.youtube.com/watch?v=${id}&t=${seconds}s`;
-                }
-
-                // Calculate Internal URL
-                const encodedTime = timestamp.replace(/:/g, "-");
-                internalUrl = `/transcript/${id}#T${encodedTime}`;
-
-                // Set context for the dialog and open it
-                setActionContext({
-                    timestamp: timestamp,
-                    lineText: lineText, // Store line text for context
-                    internalJumpUrl: internalUrl,
-                    externalVideoUrl: externalUrl,
-                });
-                setDialogOpen(true);
-            },
-            [streamType, id], // navigate is stable, no need to include
-        );
-
-        // --- Dialog Action Handlers ---
+        // The context is kept until the next open so the dialog does not go blank while it fades out.
         const handleDialogClose = () => {
             setDialogOpen(false);
-            // Reset context after closing (optional but good practice)
-            setActionContext({
-                timestamp: "",
-                lineText: "",
-                internalJumpUrl: "",
-                externalVideoUrl: "",
-            });
         };
+        // --- End Line Action Handlers ---
 
         const handleOpenStreamClick = () => {
-            let url;
-            if (streamType === "Twitch") {
-                url = `https://www.twitch.tv/videos/${id}`;
-            } else {
-                url = `https://www.youtube.com/watch?v=${id}`;
-            }
-            setConfirmUrl(url);
-            setExternalConfirmOpen(true);
+            setExternalUrl(getVideoUrl(id, streamType));
         };
-
-        const handleExternalConfirmClose = () => {
-            setExternalConfirmOpen(false);
-        };
-
-        const handleExternalConfirmProceed = () => {
-            window.open(confirmUrl, "_blank").focus();
-            setExternalConfirmOpen(false);
-        };
-
-        const handleDialogJump = () => {
-            if (actionContext.internalJumpUrl) {
-                navigate(actionContext.internalJumpUrl);
-            }
-            handleDialogClose();
-        };
-
-        const handleDialogCopy = () => {
-            if (actionContext.externalVideoUrl) {
-                navigator.clipboard.writeText(actionContext.externalVideoUrl);
-            }
-            handleDialogClose();
-        };
-
-        const handleDialogOpenExternal = () => {
-            if (actionContext.externalVideoUrl) {
-                window.open(actionContext.externalVideoUrl, "_blank").focus();
-            }
-            handleDialogClose();
-        };
-        // --- End Dialog Action Handlers ---
 
         const getStreamColor = (type) => {
             switch (type) {
@@ -377,7 +324,7 @@ export default memo(
                                     ml: isMobile ? "auto" : 0,
                                 }}
                             >
-                                {lineCount} matches
+                                {matchLabel}
                             </Typography>
                         </Box>
                     </AccordionSummary>
@@ -391,14 +338,14 @@ export default memo(
                                     sx={{ mb: 3, justifyContent: "flex-start" }}
                                 >
                                     <Button
+                                        component={RouterLink}
+                                        to={getTranscriptPath(id)}
                                         variant="contained"
                                         size="small"
-                                        onClick={handleTranscriptClick}
                                         startIcon={<Description />}
+                                        data-testid="full-transcript-link"
                                         sx={{
-                                            borderRadius: "8px",
-                                            textTransform: "none",
-                                            fontWeight: "bold",
+                                            ...actionButtonSx,
                                             boxShadow: "none",
                                             "&:hover": { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" },
                                         }}
@@ -406,15 +353,15 @@ export default memo(
                                         Full Transcript
                                     </Button>
                                     <Button
+                                        component={RouterLink}
+                                        to={getGraphPath(id)}
                                         variant="contained"
                                         size="small"
                                         color="secondary"
-                                        onClick={handleGraphClick}
                                         startIcon={<Timeline />}
+                                        data-testid="graph-view-link"
                                         sx={{
-                                            borderRadius: "8px",
-                                            textTransform: "none",
-                                            fontWeight: "bold",
+                                            ...actionButtonSx,
                                             boxShadow: "none",
                                             "&:hover": { boxShadow: "0 4px 8px rgba(0,0,0,0.1)" },
                                         }}
@@ -426,11 +373,8 @@ export default memo(
                                         size="small"
                                         onClick={handleOpenStreamClick}
                                         startIcon={<OpenInNew />}
-                                        sx={{
-                                            borderRadius: "8px",
-                                            textTransform: "none",
-                                            fontWeight: "bold",
-                                        }}
+                                        data-testid="open-stream"
+                                        sx={actionButtonSx}
                                     >
                                         Open Stream
                                     </Button>
@@ -487,6 +431,7 @@ export default memo(
                                             key={`${id}-${searchContext.startTime}-${index}`}
                                             start={searchContext.startTime}
                                             text={searchContext.line}
+                                            linePath={getTranscriptPath(id, searchContext.startTime)}
                                             targetWord={targetWord}
                                             margin={0}
                                             onActionClick={handleActionClick}
@@ -498,64 +443,22 @@ export default memo(
                     </AccordionDetails>
                 </Accordion>
 
-                {/* Line Action Dialog */}
-                <Dialog open={dialogOpen} onClose={handleDialogClose} aria-labelledby="line-action-dialog-title">
-                    <DialogTitle id="line-action-dialog-title">Line Action [{actionContext.timestamp}]</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText sx={{ mb: 2, fontStyle: "italic", wordBreak: "break-word" }}>
-                            &#34;{actionContext.lineText}&#34;
-                        </DialogContentText>
-                        <DialogContentText>Choose an action for this line:</DialogContentText>
-                    </DialogContent>
-                    <DialogActions
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            p: 2,
-                            gap: 2,
-                            // Target direct children that are not style tags and override margin-left
-                            "& > :not(style)": {
-                                marginLeft: "0 !important", // Override the default MUI margin
-                            },
-                        }}
-                    >
-                        {/* Option 1: Jump to Line */}
-                        <Button onClick={handleDialogJump} variant="outlined" fullWidth>
-                            Jump to Line in Transcript
-                        </Button>
-                        {/* Option 2: Copy Link */}
-                        <Button onClick={handleDialogCopy} variant="outlined" fullWidth>
-                            Copy External Link
-                        </Button>
-                        {/* Option 3: Open Link */}
-                        <Button onClick={handleDialogOpenExternal} variant="contained" fullWidth autoFocus>
-                            Open External Link
-                        </Button>
-                        {/* Option 4: Cancel */}
-                        <Button onClick={handleDialogClose} color="inherit" fullWidth sx={{ mt: 1 }}>
-                            Cancel
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                {/* Line Action Dialog (shared with the transcript page) */}
+                <LineActionsDialog
+                    open={dialogOpen}
+                    timestamp={actionContext.timestamp}
+                    text={actionContext.lineText}
+                    linePath={getTranscriptPath(id, actionContext.timestamp)}
+                    videoUrl={actionContext.timestamp ? getVideoUrl(id, streamType, actionContext.timestamp) : ""}
+                    onClose={handleDialogClose}
+                />
 
-                {/* External Navigation Dialog */}
-                <Dialog
-                    open={externalConfirmOpen}
-                    onClose={handleExternalConfirmClose}
-                    aria-labelledby="external-nav-dialog-title"
-                >
-                    <DialogTitle id="external-nav-dialog-title">Confirm External Navigation</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>You are about to be redirected to an external site.</DialogContentText>
-                        <DialogContentText sx={{ mt: 2, wordBreak: "break-all" }}>URL: {confirmUrl}</DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleExternalConfirmClose}>Cancel</Button>
-                        <Button onClick={handleExternalConfirmProceed} variant="contained" color="primary" autoFocus>
-                            Proceed to Site
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                {/* External Navigation Dialog (Open Stream) */}
+                <ExternalLinkDialog
+                    url={externalUrl}
+                    onClose={() => setExternalUrl("")}
+                    copyMessage="Video link copied"
+                />
             </Box>
         );
     },

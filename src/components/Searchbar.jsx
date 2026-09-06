@@ -1,14 +1,14 @@
-import { Box, Grid, TextField } from "@mui/material";
+import { IconButton, InputAdornment, TextField } from "@mui/material";
+import { Clear, Search as SearchIcon } from "@mui/icons-material";
 import { useAppStore } from "../store/store";
 import { useEffect, useRef } from "react";
 
 /**
- * A component for searching text in transcripts.
- * Search text is stored in the app store.
- * @param {Object} props
- * @param {function} [props.onSearch] - Callback to trigger search when Enter is pressed
+ * Text field for the word or phrase to look for. The value is stored in the app store.
+ * Submitting is handled by the surrounding form (Enter key / Search button), so this component only
+ * renders the field. Ctrl+F (Cmd+F) focuses the field and Escape blurs it.
  */
-export default function Searchbar({ onSearch }) {
+export default function Searchbar() {
     const searchText = useAppStore((state) => state.searchText);
     const setSearchText = useAppStore((state) => state.setSearchText);
     const searchInputRef = useRef(null);
@@ -35,28 +35,45 @@ export default function Searchbar({ onSearch }) {
         };
     }, []);
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter" && onSearch) {
-            onSearch();
-        }
+    /** Empty the field and put the cursor back into it. */
+    const handleClear = () => {
+        setSearchText("");
+        searchInputRef.current?.focus();
     };
 
     return (
-        <Box sx={{ mb: 4, p: 2 }}>
-            <Grid container spacing={2} sx={{ alignItems: "center" }}>
-                <Grid size={12}>
-                    <TextField
-                        inputRef={searchInputRef}
-                        fullWidth
-                        label="Search Text"
-                        variant="outlined"
-                        data-testid="search-text-input"
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                    />
-                </Grid>
-            </Grid>
-        </Box>
+        <TextField
+            inputRef={searchInputRef}
+            fullWidth
+            label="Search Text"
+            placeholder="Word or phrase to look for"
+            variant="outlined"
+            data-testid="search-text-input"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            slotProps={{
+                input: {
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon color="action" fontSize="small" />
+                        </InputAdornment>
+                    ),
+                    endAdornment: searchText ? (
+                        <InputAdornment position="end">
+                            <IconButton
+                                type="button"
+                                aria-label="clear search text"
+                                data-testid="clear-search-text"
+                                onClick={handleClear}
+                                edge="end"
+                                size="small"
+                            >
+                                <Clear fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    ) : null,
+                },
+            }}
+        />
     );
 }
