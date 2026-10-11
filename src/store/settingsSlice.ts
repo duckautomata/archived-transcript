@@ -12,6 +12,8 @@ export const createSettingsSlice: AppSliceCreator<SettingsSlice> = (set) => ({
     membershipKey: "",
     membershipInfo: null,
     useVirtualList: false,
+    accountToken: "",
+    accountUser: null,
     setTheme: (theme) => set({ theme }),
     setDensity: (density) => set({ density }),
     setTimeFormat: (format) => set({ timeFormat: format }),

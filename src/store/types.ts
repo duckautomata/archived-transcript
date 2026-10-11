@@ -63,6 +63,11 @@ export interface ToastSlice {
     hideToast: () => void;
 }
 
+export interface AccountUser {
+    username: string;
+    createdAt: number;
+}
+
 export interface SettingsSlice {
     theme: "light" | "system" | "dark";
     density: "compact" | "standard" | "comfortable";
@@ -75,6 +80,8 @@ export interface SettingsSlice {
     membershipKey: string;
     membershipInfo: { channel: string; expiresAt: string } | null;
     useVirtualList: boolean;
+    accountToken: string;
+    accountUser: AccountUser | null;
     setTheme: (theme: SettingsSlice["theme"]) => void;
     setDensity: (density: SettingsSlice["density"]) => void;
     setTimeFormat: (format: SettingsSlice["timeFormat"]) => void;
