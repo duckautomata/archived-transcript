@@ -144,9 +144,17 @@ export default function HelpPopup() {
                                 icon at the top collapses it to icons only (on mobile it opens and closes the menu).
                             </Typography>
                             <Typography variant="body1" gutterBottom>
-                                Sidebar is broken up into 2 parts.
+                                Sidebar is broken up into 3 parts.
                             </Typography>
                             <ul>
+                                <li>
+                                    Site switcher
+                                    <blockquote>
+                                        The grid button at the top. Opens a menu to jump to Live Transcript or to the
+                                        page with all of my sites. Choosing Archived Transcript takes you back to the
+                                        home page.
+                                    </blockquote>
+                                </li>
                                 <li>
                                     Pages
                                     <blockquote>

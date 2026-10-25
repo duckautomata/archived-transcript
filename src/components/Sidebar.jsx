@@ -12,6 +12,7 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import { GitHub, Help, Home, ManageSearch, InfoOutlined } from "@mui/icons-material";
 import { Tooltip, useMediaQuery } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
+import SiteSwitcher from "./SiteSwitcher";
 import { useAppStore } from "../store/store";
 
 const GITHUB_URL = "https://github.com/duckautomata/archived-transcript";
@@ -33,7 +34,8 @@ export default function Sidebar({ children }) {
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const isMobile = useMediaQuery("(max-width:768px)");
-    const drawerWidth = isMobile ? 180 : 200;
+    // Wide enough to keep the longest label, the site name in the site switcher, on one line.
+    const drawerWidth = 240;
     const drawerWidthCollapsed = 60;
 
     // On desktop the drawer can be collapsed to icons only; on mobile it is either fully open or hidden.
@@ -128,6 +130,15 @@ export default function Sidebar({ children }) {
                                 {showLabels && <ListItemText primary="" />}
                             </ListItemButton>
                         </ListItem>
+                        {/* Site switcher: back to this site's home, the live site, or the page with all sites */}
+                        <SiteSwitcher
+                            showLabels={showLabels}
+                            collapsed={collapsed}
+                            isMobile={isMobile}
+                            buttonSx={itemButtonSx}
+                            iconSx={itemIconSx}
+                            onNavigate={closeMobileDrawer}
+                        />
                         {/* Home Button */}
                         <ListItem disablePadding>
                             <Tooltip title={tooltipFor("Home")} placement="right">
